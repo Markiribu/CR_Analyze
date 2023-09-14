@@ -90,6 +90,42 @@ def obtain_subhalo_pos(subhaloid):
     subhalopos_arr = il.sublink.loadTree(basePath,99,subhaloid,fields=fields,onlyMPB=True)
     return(subhalopos_arr)
 
-def load_subhalo_particles(subhaloid,snapshot):
+def load_subhalo_tree(subhaloid):
     #generates a dictionary with all the particles of a given subhalo for a specific snapshot.
-    return('TU MAMA')
+    basePath = '/virgotng/universe/IllustrisTNG/L35n2160TNG/output'
+    Fields = ['SubfindID','SnapNum','SubhaloPos']
+    arbolito = il.sublink.loadTree(basePath, 99, subhaloid, fields=Fields,onlyMPB=True)
+    return(arbolito)
+
+def generate_time_table_full(subhaloid, snapid, subhalopos_arr):
+    basePath = '/virgotng/universe/IllustrisTNG/L35n2160TNG/output'
+    Fields = ['Coordinates','ParticleIDs']
+    snapshot = 99 - snapid
+    print('Cargando particulas del subhalo')
+    subhalo_dict = il.snapshot.loadSubhalo(basePath, snapshot, subhaloid, 'stellar', fields=Fields)
+    x = subhalopos_arr[snapid][0]
+    y = subhalopos_arr[snapid][1]
+    z = subhalopos_arr[snapid][2]
+    print('Transformando Dict a DataFrame')
+    subhalo_df = pd.DataFrame()
+    subhalo_df['ParticleIDs'] = subhalo_dict['ParticleIDs'][:]
+    subhalo_df['x'] = subhalo_dict['Coordinates'][:,0]
+    subhalo_df['y'] = subhalo_dict['Coordinates'][:,1]
+    subhalo_df['z'] = subhalo_dict['Coordinates'][:,2]
+    print('Cambiando marco de referencia')
+    subhalo_df['x'] = subhalo_df['x'] - x
+    subhalo_df['y'] = subhalo_df['y'] - y
+    subhalo_df['z'] = subhalo_df['z'] - z
+    return(subhalo_df)
+
+def generate_time_tables_full(subhaloid, start_snap, end_snap):
+    print('Cargando tree del subhalo')
+    arbolito = load_subhalo_tree(subhaloid)
+    subhalopos_arr = arbolito['SubhaloPos']
+    for snapshot in range(start_snap,end_snap+1):
+        snapid = 99 - snapshot
+        subhaloid_i = arbolito['SubfindID'][snapid]
+        subhalo_df = generate_time_table_full(subhaloid_i, snapid, subhalopos_arr)
+        subhalo_df.to_csv(f'time_tables_full/{subhaloid}/snap_{snapshot}.csv')
+        print(f'Tabla para particulas {subhaloid} en la snapshot {snapshot} CONSTRUIDA')
+    return('Tablas generadas')
