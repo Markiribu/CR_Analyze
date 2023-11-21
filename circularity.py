@@ -1,3 +1,8 @@
+"""
+These globalish scripts will be deleted and fragmented in order to make a kind of importable package
+"""
+
+
 import illustris_python as il
 import numpy as np
 import pandas as pd

@@ -1,3 +1,8 @@
+"""
+These globalish scripts will be deleted and fragmented in order to make a kind of importable package
+"""
+
+
 #making functions that follow a given set of particleIDs trough time, then generates a folder with tables in the following structure
 #time_tables
 #|-'subhalo_%s'%subhaloid
