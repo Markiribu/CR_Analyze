@@ -92,8 +92,33 @@ def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
 
     return(tabla,M)
 
-def table_rotated_n_angularmomenta(tabla,debug=False):
+def table_rotated_n_angularmomenta(tabla,Rgal,N_rotation=3,Rmin=0,Zmin=0.5,Zmax=1,debug=False):
     """
-    Rotates the table multiple times trough an algorithm of consecutive smaller spheres, it assumes that tabla contains the LMAO sigo escribiendo de ahi
+    Rotates the table multiple times trough an algorithm of consecutive smaller spheres, it assumes that the table "tabla" contains star particles with given metallicity and the coordinate system is centered on the center(lowest bound particle) of the galaxy.
+    It is assumed that "tabla" has physical values for the coordinates and the velocities, and the metallicity is given in terms of solar metallicity (1 being solar metallicity).
+    Parameters:
+    - tabla (dict) a dictionary with "Coordinates": array(3,N); "Velocities": array(3,N); "GFM_Metallicity_solar": array(N)
+    - Rgal (float) some definition of radius for the galaxy, like R200 Rvir, Ropt, etc, should be in kpc.
+    - N_rotation (int) number of rotations, 3 by default.
+    - Rmin (float) some definition of the radius of the bulge of the galaxy, by default is 0.
+    - Zmin (float) minimum metallicity to consider for reference particles.
+    - Zmax (float) maximum metallicity to consider for reference particles.
+    - debug (bool) whether to print debugging messages, like obtained angular momentum or rotation matrix obtained etc.
     """
+    # We obtain the list of radius to use
+    R_length = Rgal - Rmin
+    step = R_length/N_rotation
+    R_list = np.arange(Rmin,Rgal,step) #array with the radiuses to use
+    #Obtain distance to center
+    tabla["Distance_to_center"] = np.array([np.lin.norm(r) for r in tabla["Coordinates"]])
+    for n_index in range(N_rotation):
+        #Doing a rotation consists of taking the new max radius, and using as reference only particles inside this radius, and are in the range of given solar metallicity.
+        Rmax = R_list[n_index]
+
+        #Now we filter using the new maximum radius
+        filtered_index = np.where((tabla["Distance_to_center"] >= Rmin) & (tabla["Distance_to_center"] <= Rmax) & (tabla["GFM_Metallcity_solar"] >= Zmin) & (tabla["GFM_Metallcity_solar"] <= Zmax))
+
+        reference_tabla = {}
+        reference_tabla["Coordinates"] = tabla["Coordinates"][filtered_index]
+        reference_tabla["Velocities"] = tabla["Velocities"][filtered_index]
     return(tabla)
