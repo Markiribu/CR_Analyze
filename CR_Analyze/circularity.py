@@ -43,12 +43,11 @@ def comoving_to_physical(r, v, snapNum=None, scalefactor_a=None, h=None, omega_0
     """
     if snapNum != None:
         # We load the snapshot header and obtain the cosmological parameters needed
-        continue
+        snap_header = il.groupcat.loadHeader(basePath,SnapNum)
     else:
         if ((scalefactor_a == None) | (h == None) | (omega_0 == None) | (omeg == None)):
             # Then no cosmological parameters were defined
-            continue
-        continue
+            raise
     H_0 = h/10
     w_a = omega_0/(omega_lambda*(scalefactor_a**3))
     H_a = H_0*np.sqrt(omega_lambda)*np.sqrt(1+w_a)
