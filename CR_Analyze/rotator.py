@@ -1,19 +1,23 @@
-#script charged with rotating particles in a dataframe that are distributed in a disk-like form.
-import illustris_python as il
+# script charged with rotating particles in a dataframe that are distributed in
+# a disk-like form.
 import numpy as np
-import pandas as pd
+
 
 def spherical_coords_from_vector(vector):
     """
-    A function that takes a cartesian vector, and gives its spherical coordinates
+    A function that takes a cartesian vector
+    and gives its spherical coordinates
     Parameters:
-    - vector (array/list of floats): must be in a [x,y,z] format in cartesian coordinates
+    - vector (array/list of floats)
+    must be in a [x,y,z] format in cartesian coordinates
     Returns:
     - r (float) spherical coordinate
     - theta (float) spherical coordinate
     - phi (float) spherical coordinate
     """
-    x = vector[0] ; y = vector[1] ; z=vector[2]
+    x = vector[0]
+    y = vector[1]
+    z = vector[2]
     r = np.sqrt(x**2 + y**2 + z**2)
     theta = np.arccos(z / r)
     if x > 0:
@@ -28,11 +32,13 @@ def spherical_coords_from_vector(vector):
         phi = (-1 * (np.pi / 2))
     elif ((x == 0) and (y == 0)):
         phi = "INVALIDO"
-    return( r, theta, phi)
+    return (r, theta, phi)
 
-def matrix_from_spherical( r, theta, phi):
+
+def matrix_from_spherical(r, theta, phi):
     """
-    Calculates the rotation matrix needed to rotate a given vector to make it parallel to the z axis in a cartesian coordinate system
+    Calculates the rotation matrix needed to rotate a given vector to
+    make it parallel to the z axis in a cartesian coordinate system
     Parameters:
     - r (float) spherical coordinate
     - theta (float) spherical coordinate
@@ -40,18 +46,17 @@ def matrix_from_spherical( r, theta, phi):
     Returns:
     - M (numpy.Matrix) the rotation matrix
     """
-    Rz = np.matrix([[np.cos(-phi),-np.sin(-phi),0],
-                    [np.sin(-phi), np.cos(-phi),0],
-                    [           0,            0,1]
+    Rz = np.matrix([[np.cos(-phi),-np.sin(-phi), 0],
+                    [np.sin(-phi), np.cos(-phi), 0],
+                    [           0,            0, 1]
                    ])
-    
     Ry = np.matrix([[ np.cos(-theta),            0,np.sin(-theta)],
                     [            0,              1,             0],
                     [-np.sin(-theta),            0,np.cos(-theta)]
                    ])
-    
     M = np.dot(Ry,Rz)
     return(M)
+
 
 def table_rotate(table,rotation_matrix):
     """
@@ -67,6 +72,7 @@ def table_rotate(table,rotation_matrix):
         xyz = np.dot(rotation_matrix, xyz)
         table[i] = xyz
     return(table)
+
 
 def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
     """
@@ -92,6 +98,7 @@ def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
 
     return(tabla,M)
 
+
 def table_rotated_n_angularmomenta(tabla,Rgal,N_rotation=3,Rmin=0,Zmin=0.5,Zmax=1,debug=False):
     """
     Rotates the table multiple times trough an algorithm of consecutive smaller spheres, it assumes that the table "tabla" contains star particles with given metallicity and the coordinate system is centered on the center(lowest bound particle) of the galaxy.
@@ -105,6 +112,8 @@ def table_rotated_n_angularmomenta(tabla,Rgal,N_rotation=3,Rmin=0,Zmin=0.5,Zmax=
     - Zmax (float) maximum metallicity to consider for reference particles.
     - debug (bool) whether to print debugging messages, like obtained angular momentum or rotation matrix obtained etc.
     """
+    # We define a list of rotation matrixes, used to obtain the final rotation matrix after the multiple rotations.
+    M_list = np.zeros(N_rotation)
     # We obtain the list of radius to use
     R_length = Rgal - Rmin
     step = R_length/N_rotation
@@ -121,4 +130,16 @@ def table_rotated_n_angularmomenta(tabla,Rgal,N_rotation=3,Rmin=0,Zmin=0.5,Zmax=
         reference_tabla = {}
         reference_tabla["Coordinates"] = tabla["Coordinates"][filtered_index]
         reference_tabla["Velocities"] = tabla["Velocities"][filtered_index]
-    return(tabla)
+        # We have obtained a reference table, as such we use to rotate the main table, and redefine the definition of tabla.
+        tabla, M = table_rotated_once_angularmomenta(tabla, reference_tabla, debug=debug)
+        # tabla has been redefined, we need to append M to the list of rotation matrixes.
+        M_list[n_index] = M
+        #Finished this cycle, so continue
+        continue
+    # After all the cycles are done tabla should be rotated, and we have M_list to process in order to obtain the final rotation matrix.
+    # I prefer to make two cycles, one for rotating tabla, and one for obtaining the final matrix, for clarity of reading.
+    M_rot = M_list[0]
+    for n in range(N_rotation-1):
+        M_rot = np.dot(M_rot,M_list[n+1])
+    # We have tabla and M_rot, so just return them
+    return(tabla, M_rot)
