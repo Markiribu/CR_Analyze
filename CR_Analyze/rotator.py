@@ -125,7 +125,7 @@ def table_rotated_n_angularmomenta(tabla,Rgal,N_rotation=3,Rmin=0,Zmin=0.5,Zmax=
         Rmax = R_list[n_index]
 
         #Now we filter using the new maximum radius
-        filtered_index = np.where((tabla["Distance_to_center"] >= Rmin) & (tabla["Distance_to_center"] <= Rmax) & (tabla["GFM_Metallcity_solar"] >= Zmin) & (tabla["GFM_Metallcity_solar"] <= Zmax))
+        filtered_index = np.where((tabla["Distance_to_center"] >= Rmin) & (tabla["Distance_to_center"] <= Rmax) & (tabla["GFM_Metallicity_solar"] >= Zmin) & (tabla["GFM_Metallicity_solar"] <= Zmax))
 
         reference_tabla = {}
         reference_tabla["Coordinates"] = tabla["Coordinates"][filtered_index]
