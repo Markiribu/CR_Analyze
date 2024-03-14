@@ -46,19 +46,17 @@ def matrix_from_spherical(r, theta, phi):
     Returns:
     - M (numpy.Matrix) the rotation matrix
     """
-    Rz = np.matrix([[np.cos(-phi),-np.sin(-phi), 0],
+    Rz = np.matrix([[np.cos(-phi), -np.sin(-phi), 0],
                     [np.sin(-phi), np.cos(-phi), 0],
-                    [           0,            0, 1]
-                   ])
-    Ry = np.matrix([[ np.cos(-theta),            0,np.sin(-theta)],
-                    [            0,              1,             0],
-                    [-np.sin(-theta),            0,np.cos(-theta)]
-                   ])
-    M = np.dot(Ry,Rz)
-    return(M)
+                    [0,            0, 1]])
+    Ry = np.matrix([[np.cos(-theta),            0, np.sin(-theta)],
+                    [0,              1,             0],
+                    [-np.sin(-theta),            0, np.cos(-theta)]])
+    M = np.dot(Ry, Rz)
+    return (M)
 
 
-def table_rotate(table,rotation_matrix):
+def table_rotate(table, rotation_matrix):
     """
     Rotates the table of xyz coordinates by the given matrix.
     Parameters:
@@ -71,75 +69,114 @@ def table_rotate(table,rotation_matrix):
         xyz = table[i]
         xyz = np.dot(rotation_matrix, xyz)
         table[i] = xyz
-    return(table)
+    return (table)
 
 
 def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
     """
-    Rotates a table of particles by using a given reference table. Both must be in dict form with values of "Velocities" and "Coordinates"
+    Rotates a table of particles by using a given reference table.
+    Both must be in dict form with values of "Velocities" and "Coordinates"
     Parameters:
-    - tabla (dict) a dictionary with the form {"Coordinates":numpy.array(N,3),"Velocities":numpy.array(3,N)}
-    - reference_tabla (dict) a dictionary with the form {"Coordinates":numpy.array(N,3),"Velocities":numpy.array(3,N)}
+    - tabla (dict) a dictionary with the form 
+        {"Coordinates":numpy.array(N,3),"Velocities":numpy.array(3,N)}
+    - reference_tabla (dict) a dictionary with the form 
+        {"Coordinates":numpy.array(N,3),"Velocities":numpy.array(3,N)}
     Returns:
-    - tabla (dict), the same dictionary but with its coordinates and velocities rotated
-    - M (np.array(3,3)) the rotation matrix calculated and used. ideally for later saving.
+    - tabla (dict), the resulting dictionary of coordinates
+    - M (np.array(3,3)) the rotation matrix calculated and used.
     """
-    # We assume that the conversion to physical coordinates has been done already, as such we calculate the angular momenta from the reference table that is going to be used to rotate
-    # We assume as well that (0,0,0) would be the center of the subhalo or galaxy
-    reference_tabla["Angular_Momentum"] = np.cross(reference_tabla["Coordinates"],reference_tabla["Velocities"])
-    reference_J = sum(reference_tabla["Angular_Momentum"]) #Referential angular momentum
-    r, theta, phi = spherical_coords_from_vector(reference_J) #Angles of rotation
+    # We assume that the conversion to physical coordinates has been done,
+    # as such we calculate the angular momenta from the reference table 
+    # that is going to be used to rotate
+    # We assume as well that (0,0,0) is the center of the subhalo or galaxy
+    reference_tabla["Angular_Momentum"] = np.cross(
+        reference_tabla["Coordinates"], reference_tabla["Velocities"])
+    # Referential angular momentum
+    reference_J = sum(reference_tabla["Angular_Momentum"])
+    # Angles of rotation
+    r, theta, phi = spherical_coords_from_vector(reference_J)
     M = matrix_from_spherical(r, theta, phi)
-    if debug: print(np.dot(M, reference_J)) #In case of debugging, check rotated angular momentum.
+    if debug:
+        # In case of debugging, check rotated angular momentum.
+        print(np.dot(M, reference_J))
 
-    #Rotate the table "tabla" by the reference matrix
+    # Rotate the table "tabla" by the reference matrix
     tabla["Coordinates"] = table_rotate(tabla["Coordinates"], M)
-    tabla["Velocities"] = table_rotate(tabla["Velocities"],M)
+    tabla["Velocities"] = table_rotate(tabla["Velocities"], M)
 
-    return(tabla,M)
+    return (tabla, M)
 
 
-def table_rotated_n_angularmomenta(tabla,Rgal,N_rotation=3,Rmin=0,Zmin=0.5,Zmax=1,debug=False):
+def table_rotated_n_angularmomenta(tabla, Rgal, 
+                                   N_rotation=3, Rmin=0, Zmin=0.5, Zmax=1,
+                                   debug=False):
     """
-    Rotates the table multiple times trough an algorithm of consecutive smaller spheres, it assumes that the table "tabla" contains star particles with given metallicity and the coordinate system is centered on the center(lowest bound particle) of the galaxy.
-    It is assumed that "tabla" has physical values for the coordinates and the velocities, and the metallicity is given in terms of solar metallicity (1 being solar metallicity).
+    Rotates the table multiple times using consecutive smaller spheres,
+    it's assumed that the table "tabla" contains star particles
+    , their metallicities and the coordinate system is centered on the
+    lowest bound particle of the galaxy.
+
+    "tabla" must have physical values for the coordinates and velocities,
+    and the metallicity is given in terms of solar metallicity
+    (1 being solar metallicity).
     Parameters:
-    - tabla (dict) a dictionary with "Coordinates": array(3,N); "Velocities": array(3,N); "GFM_Metallicity_solar": array(N)
-    - Rgal (float) some definition of radius for the galaxy, like R200 Rvir, Ropt, etc, should be in kpc.
+    - tabla (dict) a dictionary with
+    "Coordinates": array(3,N)
+    "Velocities": array(3,N)
+    "GFM_Metallicity_solar": array(N)
+    - Rgal (float) some definition of radius(in kpc) for the galaxy, example:
+    R200 Rvir, Ropt, etc.
     - N_rotation (int) number of rotations, 3 by default.
-    - Rmin (float) some definition of the radius of the bulge of the galaxy, by default is 0.
+    - Rmin (float) some definition of the radius of the bulge of the galaxy
+    by default = 0.
     - Zmin (float) minimum metallicity to consider for reference particles.
     - Zmax (float) maximum metallicity to consider for reference particles.
-    - debug (bool) whether to print debugging messages, like obtained angular momentum or rotation matrix obtained etc.
+    - debug (bool) whether to print debugging messages.
+    angular momentum or rotation matrix obtained etc.
     """
-    # We define a list of rotation matrixes, used to obtain the final rotation matrix after the multiple rotations.
+    # We define a list of rotation matrixes,
+    # used to obtain the final rotation matrix after the multiple rotations.
     M_list = np.zeros(N_rotation)
     # We obtain the list of radius to use
     R_length = Rgal - Rmin
     step = R_length/N_rotation
-    R_list = np.arange(Rmin,Rgal,step) #array with the radiuses to use
-    #Obtain distance to center
-    tabla["Distance_to_center"] = np.array([np.lin.norm(r) for r in tabla["Coordinates"]])
+    # array with the radiuses to use
+    R_list = np.arange(Rmin, Rgal, step)
+    # Obtain distance to center
+    tabla["Distance_to_center"] = np.array(
+        [np.lin.norm(r) for r in tabla["Coordinates"]])
     for n_index in range(N_rotation):
-        #Doing a rotation consists of taking the new max radius, and using as reference only particles inside this radius, and are in the range of given solar metallicity.
+        # Doing a rotation consists of taking the new max radius,
+        # and using as reference only particles inside this radius,
+        # and are in the range of given solar metallicity.
         Rmax = R_list[n_index]
 
-        #Now we filter using the new maximum radius
-        filtered_index = np.where((tabla["Distance_to_center"] >= Rmin) & (tabla["Distance_to_center"] <= Rmax) & (tabla["GFM_Metallicity_solar"] >= Zmin) & (tabla["GFM_Metallicity_solar"] <= Zmax))
+        # Now we filter using the new maximum radius
+        filtered_index = np.where((tabla["Distance_to_center"] >= Rmin) &
+                                  (tabla["Distance_to_center"] <= Rmax) &
+                                  (tabla["GFM_Metallicity_solar"] >= Zmin)
+                                  & (tabla["GFM_Metallicity_solar"] <= Zmax))
 
         reference_tabla = {}
         reference_tabla["Coordinates"] = tabla["Coordinates"][filtered_index]
         reference_tabla["Velocities"] = tabla["Velocities"][filtered_index]
-        # We have obtained a reference table, as such we use to rotate the main table, and redefine the definition of tabla.
-        tabla, M = table_rotated_once_angularmomenta(tabla, reference_tabla, debug=debug)
-        # tabla has been redefined, we need to append M to the list of rotation matrixes.
+        # We have obtained a reference table
+        # as such we use to rotate the main table,
+        # and redefine the definition of tabla.
+        tabla, M = table_rotated_once_angularmomenta(
+            tabla, reference_tabla, debug=debug)
+        # tabla has been redefined,
+        # we need to append M to the list of rotation matrixes.
         M_list[n_index] = M
-        #Finished this cycle, so continue
+        # Finished this cycle, so continue
         continue
-    # After all the cycles are done tabla should be rotated, and we have M_list to process in order to obtain the final rotation matrix.
-    # I prefer to make two cycles, one for rotating tabla, and one for obtaining the final matrix, for clarity of reading.
+    # After all the cycles are done tabla should be rotated,
+    # and we have M_list to obtain the final rotation matrix.
+    # I prefer to make two cycles,
+    # one for rotating tabla, and one for obtaining the final matrix,
+    # for clarity
     M_rot = M_list[0]
     for n in range(N_rotation-1):
-        M_rot = np.dot(M_rot,M_list[n+1])
+        M_rot = np.dot(M_rot, M_list[n+1])
     # We have tabla and M_rot, so just return them
-    return(tabla, M_rot)
+    return (tabla, M_rot)
