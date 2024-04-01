@@ -107,7 +107,7 @@ def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
     return (tabla, M)
 
 
-def table_rotated_n_angularmomenta(tabla, Rgal, 
+def table_rotated_n_angularmomenta(tabla, Rgal,
                                    N_rotation=3, Rmin=0, Zmin=0.5, Zmax=1,
                                    debug=False):
     """
@@ -123,7 +123,7 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     - tabla (dict) a dictionary with
     "Coordinates": array(3,N)
     "Velocities": array(3,N)
-    "GFM_Metallicity_solar": array(N)
+    "GFM_Metallicity": array(N)
     - Rgal (float) some definition of radius(in kpc) for the galaxy, example:
     R200 Rvir, Ropt, etc.
     - N_rotation (int) number of rotations, 3 by default.
@@ -133,6 +133,9 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     - Zmax (float) maximum metallicity to consider for reference particles.
     - debug (bool) whether to print debugging messages.
     angular momentum or rotation matrix obtained etc.
+    Returns:
+    - tabla (dict) the dictionary with particles rotated
+    - M_rot (matrix) the final rotation matrix
     """
     # We define a list of rotation matrixes,
     # used to obtain the final rotation matrix after the multiple rotations.
@@ -145,6 +148,7 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     # Obtain distance to center
     tabla["Distance_to_center"] = np.array(
         [np.lin.norm(r) for r in tabla["Coordinates"]])
+    tabla["GFM_Metallicity_solar"] = tabla["GFM_Metallicity"] / 0.0127
     for n_index in range(N_rotation):
         # Doing a rotation consists of taking the new max radius,
         # and using as reference only particles inside this radius,

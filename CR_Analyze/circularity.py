@@ -164,7 +164,7 @@ def generate_data_hdf5(subhaloID, basepath,
     Integrates all methods to generate a single file
     containing the circularities and angular momentums of all particles,
     as well as additional data used in the calculations(if enabled).
-    It saves it inside savepath, on a file named subhaloID.hdf5
+    It saves it inside savepath, on a file named subhalo_ID.hdf5
     The hdf5 file contains datasets for each snapshot,
     this function updates the file accordingly, inside each dataset:
     Metadata:
@@ -174,24 +174,92 @@ def generate_data_hdf5(subhaloID, basepath,
         ParticleIDs , Coordinates, Velocities, Potential_energy,
         GFM_StellarFormationTime, GFM_metallicity_solar, R, J, circularity
     """
+    filename = f'{savepath}/subhalo_{subhaloID}.hdf5'
     try:
-        file = h5py.File(f'{savepath}{subhaloID}', 'r')
+        file = h5py.File(filename, 'r+')
     except FileNotFoundError:
         if debug is True:
             print("File has not been found, so creation is possible")
-        # Startup of loading particle data from illustris
-        fields_to_load = ['Masses', 'Coordinates', 'Velocities',
-                          'GFM_Metallicity', 'Potential',
-                          'GFM_StellarFormationTime', 'ParticleIDs']
-        subhalo_star_data = il.loadSubhalo(basePath=basepath, snapNum=snapNum,
-                                           id=subhaloID, partType='star',
-                                           fields=fields_to_load)
-        # Data calculated, saving to file
-        with h5py.File(f'Subhalo_{subhaloID}', 'w') as savefile:
-            for key in subhalo_star_data.keys():
-                    savefile[f'{snapNum}']
+            print("Iteration process for every snap begun")
+        # Now values are calculated for every snapshot
+        for index in range(0, 99):
+            snapnum = 99 - index
+            if debug is True:
+                print(
+                    f"{subhaloID} snap {snapnum}, index {index}")
+            # Load header data, used afterwards when considering the cosmology
+            snap_data = il.groupcat.loadHeader(basePath=basepath,
+                                               snapNum=snapnum)
+            # Startup of loading particle data from illustris
+            fields_to_load = ['Masses', 'Coordinates', 'Velocities',
+                              'GFM_Metallicity', 'Potential',
+                              'GFM_StellarFormationTime', 'ParticleIDs']
+            subhalo_star_data = il.loadSubhalo(basePath=basepath,
+                                               snapNum=snapnum,
+                                               id=subhaloID,
+                                               partType='star',
+                                               fields=fields_to_load)
+            # Data for snapshot snapnum loaded, begin calculation process
+            if debug is True:
+                print(f"snapshot {snapnum} loaded")
+                print("Loading subhalo data")
+            subhalo_data = il.groupcat.loadSingle(basePath=basepath,
+                                                  snapNum=snapnum,
+                                                  subhaloID=subhaloID)
+            # Subhalo data loaded, obtain central_pos and central_vel
+            central_pos = subhalo_data["SubhaloPos"]
+            central_vel = subhalo_data["SubhaloVel"]
+            L_box = snap_data["BoxSize"]
+            # Now changing the frame of reference
+            r = subhalo_star_data["Coordinates"]
+            v = subhalo_star_data["Velocities"]
+            r, v = frame_of_reference_change(r, v,
+                                             central_pos, central_vel, L_box)
+            # Now changing the coordinates to physical
+            r, v = comoving_to_physical(r, v,
+                                        basePath=basepath, snapNum=snapnum)
+            subhalo_star_data["Coordinates"] = r
+            subhalo_star_data["Velocities"] = v
+            # Before rotating first some measure of radius must be obtained
+            # if central is true then search for R200 in the group catalog
+            # otherwise halfmassrad is used as radius
+            group_catalog = il.groupcat.loadHalos(basePath=basepath,
+                                                  snapNum=snapnum)
+            index_where = np.where(group_catalog["GroupFirstSub"] == subhaloID)
+            if len(index_where) == 0:
+                centralsubhalo = True
+                R_gal = group_catalog["Group_R_Crit200"][index_where]
+            else:
+                centralsubhalo = False
+                R_gal = subhalo_data["SubhaloHalfmassRad"]
+            # Now begin rotation process
+            subhalo_star_data, M_rot = table_rotated_n_angularmomenta(
+                subhalo_star_data, R_gal)
+            # Now calculate the circularities, this requires the potential
+            U = subhalo_star_data["Potential"]
+            epsilon, J = calculate_the_circularities(r, v, U)
+            # Data calculated, saving to file
+            subhalo_star_data["Potential"] = U
+            subhalo_star_data["J"] = J
+            subhalo_star_data["Circularity"] = epsilon
+            # Now particle data is rotated and circularities are calculated
+            with h5py.File(filename, 'w') as savefile:
+                # Save metadata
+                if centralsubhalo is True:
+                    savefile[f"{snapnum}"].attrs["R200"] = R_gal
+                else:
+                    savefile[f"{snapnum}"].attrs["Rgal"] = R_gal
+                # Save particle data
+                for key in subhalo_star_data.keys():
+                    savefile[f'{snapnum}/{key}']
     else:
         if debug is True:
             print("File found. unable to create data file")
         file.close()
+    return (0)
+
+
+def CR_detector():
+    """
+    """
     return (0)
