@@ -141,7 +141,7 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     """
     # We define a list of rotation matrixes,
     # used to obtain the final rotation matrix after the multiple rotations.
-    M_list = np.zeros(N_rotation)
+    M_list = np.full(N_rotation,np.zeros((3,3)))
     # We obtain the list of radius to use
     R_length = Rgal - Rmin
     step = R_length/N_rotation

@@ -234,7 +234,7 @@ def generate_data_hdf5(subhaloID, basepath,
                 R_gal = subhalo_data["SubhaloHalfmassRad"]
             # Now begin rotation process
             subhalo_star_data, M_rot = table_rotated_n_angularmomenta(
-                subhalo_star_data, R_gal)
+                subhalo_star_data, R_gal, debug=debug)
             # Now calculate the circularities, this requires the potential
             U = subhalo_star_data["Potential"]
             epsilon, J = calculate_the_circularities(r, v, U)
