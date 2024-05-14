@@ -195,10 +195,10 @@ def generate_data_hdf5(subhaloID, basepath,
                               'GFM_Metallicity', 'Potential',
                               'GFM_StellarFormationTime', 'ParticleIDs']
             subhalo_star_data = il.snapshot.loadSubhalo(basePath=basepath,
-                                               snapNum=snapnum,
-                                               id=subhaloID,
-                                               partType='star',
-                                               fields=fields_to_load)
+                                                        snapNum=snapnum,
+                                                        id=subhaloID,
+                                                        partType='star',
+                                                        fields=fields_to_load)
             # Data for snapshot snapnum loaded, begin calculation process
             if debug is True:
                 print(f"snapshot {snapnum} loaded")
@@ -245,6 +245,8 @@ def generate_data_hdf5(subhaloID, basepath,
             # Now particle data is rotated and circularities are calculated
             with h5py.File(filename, 'w') as savefile:
                 # Save particle data
+                if debug is True:
+                    print(subhalo_star_data)
                 for key in subhalo_star_data.keys():
                     savefile[f'{snapnum}/{key}'] = subhalo_star_data[key]
                 # Save metadata
@@ -252,9 +254,9 @@ def generate_data_hdf5(subhaloID, basepath,
                     savefile[f"{snapnum}/"].attrs["R200"] = R_gal
                 else:
                     savefile[f"{snapnum}/"].attrs["Rgal"] = R_gal
-                            if debug is True:
+            if debug is True:
                 print(f'File Created, circularities computed, in {file}')
-            return(0)
+            return 0
     else:
         if debug is True:
             print("File found. unable to create data file")
