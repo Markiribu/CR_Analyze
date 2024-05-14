@@ -134,7 +134,7 @@ def calculate_the_circularities(r, v, U,
     """
     angular_momentums = np.cross(r, v)
 
-    norm_velocities = np.linalg.norm(v)
+    norm_velocities = np.linalg.norm(v, axis=1)
 
     E = (0.5*(norm_velocities**2)) + U
 
