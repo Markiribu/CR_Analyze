@@ -31,7 +31,9 @@ def spherical_coords_from_vector(vector):
     elif ((x == 0) and (y < 0)):
         phi = (-1 * (np.pi / 2))
     elif ((x == 0) and (y == 0)):
-        phi = "INVALIDO"
+        phi = 0
+        theta = 0
+        r = z
     return (r, theta, phi)
 
 
