@@ -174,7 +174,7 @@ def generate_data_hdf5(subhaloID, basepath,
         ParticleIDs , Coordinates, Velocities, Potential_energy,
         GFM_StellarFormationTime, GFM_metallicity_solar, R, J, circularity
     """
-    filename = f'{savepath}/subhalo_{subhaloID}.hdf5'
+    filename = f'{savepath}subhalo_{subhaloID}.hdf5'
     try:
         file = h5py.File(filename, 'r+')
     except OSError:
@@ -255,7 +255,7 @@ def generate_data_hdf5(subhaloID, basepath,
                 else:
                     savefile[f"{snapnum}/"].attrs["Rgal"] = R_gal
             if debug is True:
-                print(f'File Created, circularities computed, in {file}')
+                print(f'File Created, circularities computed, in {filename}')
             return 0
     else:
         if debug is True:
