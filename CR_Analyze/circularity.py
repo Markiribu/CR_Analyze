@@ -194,7 +194,7 @@ def generate_data_hdf5(subhaloID, basepath,
             fields_to_load = ['Masses', 'Coordinates', 'Velocities',
                               'GFM_Metallicity', 'Potential',
                               'GFM_StellarFormationTime', 'ParticleIDs']
-            subhalo_star_data = il.loadSubhalo(basePath=basepath,
+            subhalo_star_data = il.snapshot.loadSubhalo(basePath=basepath,
                                                snapNum=snapnum,
                                                id=subhaloID,
                                                partType='star',
