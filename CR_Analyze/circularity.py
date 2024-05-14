@@ -246,12 +246,12 @@ def generate_data_hdf5(subhaloID, basepath,
             with h5py.File(filename, 'w') as savefile:
                 # Save metadata
                 if centralsubhalo is True:
-                    savefile[f"{snapnum}"].attrs["R200"] = R_gal
+                    savefile[f"{snapnum}/"].attrs["R200"] = R_gal
                 else:
-                    savefile[f"{snapnum}"].attrs["Rgal"] = R_gal
+                    savefile[f"{snapnum}/"].attrs["Rgal"] = R_gal
                 # Save particle data
                 for key in subhalo_star_data.keys():
-                    savefile[f'{snapnum}/{key}']
+                    savefile[f'{snapnum}/{key}'] = subhalo_star_data[key]
             if debug is True:
                 print(f'File Created, circularities computed, in {file}')
             return(0)

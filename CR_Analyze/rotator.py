@@ -79,16 +79,16 @@ def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
     Rotates a table of particles by using a given reference table.
     Both must be in dict form with values of "Velocities" and "Coordinates"
     Parameters:
-    - tabla (dict) a dictionary with the form 
+    - tabla (dict) a dictionary with the form
         {"Coordinates":numpy.array(N,3),"Velocities":numpy.array(3,N)}
-    - reference_tabla (dict) a dictionary with the form 
+    - reference_tabla (dict) a dictionary with the form
         {"Coordinates":numpy.array(N,3),"Velocities":numpy.array(3,N)}
     Returns:
     - tabla (dict), the resulting dictionary of coordinates
     - M (np.array(3,3)) the rotation matrix calculated and used.
     """
     # We assume that the conversion to physical coordinates has been done,
-    # as such we calculate the angular momenta from the reference table 
+    # as such we calculate the angular momenta from the reference table
     # that is going to be used to rotate
     # We assume as well that (0,0,0) is the center of the subhalo or galaxy
     reference_tabla["Angular_Momentum"] = np.cross(
@@ -100,7 +100,11 @@ def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
     M = matrix_from_spherical(r, theta, phi)
     if debug:
         # In case of debugging, check rotated angular momentum.
-        print(np.dot(M, reference_J))
+        print('New J', np.dot(M, reference_J))
+        # And rotation matrix angles, and matrix
+        print('Matrix', M)
+        # Angle
+        print('spherical', r, theta, phi)
 
     # Rotate the table "tabla" by the reference matrix
     tabla["Coordinates"] = table_rotate(tabla["Coordinates"], M)
