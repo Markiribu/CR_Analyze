@@ -147,7 +147,7 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     R_list = np.arange(Rmin, Rgal, step)
     # Obtain distance to center
     tabla["Distance_to_center"] = np.array(
-        [np.lin.norm(r) for r in tabla["Coordinates"]])
+        [np.linalg.norm(r) for r in tabla["Coordinates"]])
     tabla["GFM_Metallicity_solar"] = tabla["GFM_Metallicity"] / 0.0127
     for n_index in range(N_rotation):
         # Doing a rotation consists of taking the new max radius,
