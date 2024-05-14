@@ -18,6 +18,10 @@ def spherical_coords_from_vector(vector):
     x = vector[0]
     y = vector[1]
     z = vector[2]
+    if ((x == 0) and (y == 0)):
+        phi, theta = 0, 0
+        r = z
+        return (r, theta, phi)
     r = np.sqrt(x**2 + y**2 + z**2)
     theta = np.arccos(z / r)
     if x > 0:
@@ -30,10 +34,6 @@ def spherical_coords_from_vector(vector):
         phi = np.pi / 2
     elif ((x == 0) and (y < 0)):
         phi = (-1 * (np.pi / 2))
-    elif ((x == 0) and (y == 0)):
-        phi = 0
-        theta = 0
-        r = z
     return (r, theta, phi)
 
 
@@ -151,7 +151,11 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     tabla["Distance_to_center"] = np.array(
         [np.linalg.norm(r) for r in tabla["Coordinates"]])
     tabla["GFM_Metallicity_solar"] = tabla["GFM_Metallicity"] / 0.0127
+    if debug is True:
+        print("Rotation iteration begun")
     for n_index in range(N_rotation):
+        if debug is True:
+            print(f"Rotation number {n_index + 1}/{N_rotation}")
         # Doing a rotation consists of taking the new max radius,
         # and using as reference only particles inside this radius,
         # and are in the range of given solar metallicity.
