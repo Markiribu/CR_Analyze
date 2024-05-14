@@ -92,7 +92,7 @@ def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
     reference_tabla["Angular_Momentum"] = np.cross(
         reference_tabla["Coordinates"], reference_tabla["Velocities"])
     # Referential angular momentum
-    reference_J = sum(reference_tabla["Angular_Momentum"])
+    reference_J = np.sum(reference_tabla["Angular_Momentum"], axis=0)
     # Angles of rotation
     r, theta, phi = spherical_coords_from_vector(reference_J)
     M = matrix_from_spherical(r, theta, phi)
