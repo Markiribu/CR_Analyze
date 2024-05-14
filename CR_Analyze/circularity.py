@@ -252,6 +252,9 @@ def generate_data_hdf5(subhaloID, basepath,
                 # Save particle data
                 for key in subhalo_star_data.keys():
                     savefile[f'{snapnum}/{key}']
+            if debug is True:
+                print(f'File Created, circularities computed, in {file}')
+            return(0)
     else:
         if debug is True:
             print("File found. unable to create data file")
