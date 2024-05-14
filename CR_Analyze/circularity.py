@@ -177,7 +177,7 @@ def generate_data_hdf5(subhaloID, basepath,
     filename = f'{savepath}/subhalo_{subhaloID}.hdf5'
     try:
         file = h5py.File(filename, 'r+')
-    except FileNotFoundError:
+    except OSError:
         if debug is True:
             print("File has not been found, so creation is possible")
             print("Iteration process for every snap begun")
