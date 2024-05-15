@@ -248,6 +248,7 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
             savefile[f"{snapnum}/"].attrs["R200"] = R_gal
         else:
             savefile[f"{snapnum}/"].attrs["Rgal"] = R_gal
+        savefile[f"{snapnum}/"].attrs["Mrot"] = M_rot
         if debug is True:
             print(f'Data created, circularities computed, {snapnum}')
     return 0
