@@ -78,12 +78,18 @@ def comoving_to_physical(r, v,
         The r an v arrays changed to physical magnitudes.
     """
     if ((snapNum is not None) and (basePath is not None)):
-        # Load the snapshot header and obtain the cosmological parameters
-        snap_header = il.groupcat.loadHeader(basePath, snapNum)
-        scalefactor_a = snap_header["Time"]
-        h = snap_header["HubbleParam"]
-        omega_0 = snap_header["Omega0"]
-        omega_lambda = snap_header["OmegaLambda"]
+        try:
+            import illustris_python as il
+        except ModuleNotFoundError:
+            print("illustris_python is needed to extract cosmology")
+            raise 'RequiredDependendyNotInstalled'
+        else:
+            # Load the snapshot header and obtain the cosmological parameters
+            snap_header = il.groupcat.loadHeader(basePath, snapNum)
+            scalefactor_a = snap_header["Time"]
+            h = snap_header["HubbleParam"]
+            omega_0 = snap_header["Omega0"]
+            omega_lambda = snap_header["OmegaLambda"]
     else:
         if ((scalefactor_a is None) or (h is None) or
                 (omega_0 is None) or (omega_lambda is None)):
