@@ -278,7 +278,7 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
         filename = f'{savepath}subhalo_{subhaloID}.hdf5'
         index = 99 - snapnum
         # now estimate the subhaloid at the requested snap
-        subfindid_arr = il.sublink.loadTree(basepath, snapnum, subhaloID,
+        subfindid_arr = il.sublink.loadTree(basepath, 99, subhaloID,
                                             fields=['SubfindID'])
         subhaloIDatsnapnum = subfindid_arr[index]
         try:
