@@ -288,14 +288,14 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
             if debug is True:
                 print("File has not been found, creating file")
             save_snap_data_hdf5(subhaloIDatsnapnum,
-                                basepath, snapnum, savefile=file,
+                                snapnum, basepath, savefile=file,
                                 debug=debug)
             file.close()
         else:
             if debug is True:
                 print("File found. computing data and appending")
             save_snap_data_hdf5(subhaloIDatsnapnum,
-                                basepath, snapnum, savefile=file,
+                                snapnum, basepath, savefile=file,
                                 debug=debug)
             file.close()
     return (0)
