@@ -221,7 +221,7 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
         group_catalog = il.groupcat.loadHalos(basePath=basepath,
                                               snapNum=snapnum)
         index_where = np.where(group_catalog["GroupFirstSub"] == subhaloID)
-        if len(index_where) == 0:
+        if len(index_where) == 1:
             centralsubhalo = True
             R_gal = group_catalog["Group_R_Crit200"][index_where]
         else:
@@ -289,7 +289,12 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
                                             fields=['SubfindID'])
         subhaloIDatsnapnum = subfindid_arr[index]
         try:
-            file = h5py.File(filename, 'r+')
+            with h5py.File(filename, 'r+') as file:
+                if debug is True:
+                    print('File found, computing data and appending')
+                save_snap_data_hdf5(subhaloIDatsnapnum,
+                                snapnum, basepath, savefile=file,
+                                debug=debug)
         except OSError:
             file = h5py.File(filename, 'w')
             if debug is True:
@@ -297,14 +302,6 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
             save_snap_data_hdf5(subhaloIDatsnapnum,
                                 snapnum, basepath, savefile=file,
                                 debug=debug)
-            file.close()
-        else:
-            if debug is True:
-                print("File found. computing data and appending")
-            save_snap_data_hdf5(subhaloIDatsnapnum,
-                                snapnum, basepath, savefile=file,
-                                debug=debug)
-            file.close()
     return (0)
 
 
