@@ -296,12 +296,12 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
                                 snapnum, basepath, savefile=file,
                                 debug=debug)
         except OSError:
-            file = h5py.File(filename, 'w')
-            if debug is True:
-                print("File has not been found, creating file")
-            save_snap_data_hdf5(subhaloIDatsnapnum,
-                                snapnum, basepath, savefile=file,
-                                debug=debug)
+            with h5py.File(filename, 'w') as file:
+                if debug is True:
+                    print("File has not been found, creating file")
+                save_snap_data_hdf5(subhaloIDatsnapnum,
+                                    snapnum, basepath, savefile=file,
+                                    debug=debug)
     return (0)
 
 
