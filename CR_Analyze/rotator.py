@@ -191,6 +191,6 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     # for clarity
     M_rot = M_list[0]
     for n in range(N_rotation-1):
-        M_rot = np.dot(M_rot, M_list[n+1])
+        M_rot = np.dot(M_list[n+1], M_rot)
     # We have tabla and M_rot, so just return them
     return (tabla, M_rot)
