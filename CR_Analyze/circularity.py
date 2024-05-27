@@ -225,12 +225,12 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
             centralsubhalo = True
             R_gal = group_catalog["Group_R_Crit200"][index_where]
             if debug is True:
-                print('CENTRAL R200',R_gal)
+                print('CENTRAL R200', R_gal)
         else:
             centralsubhalo = False
             R_gal = subhalo_data["SubhaloHalfmassRad"]
             if debug is True:
-                print('NOTCENTRAL Rgal',Rgal)
+                print('NOTCENTRAL Rgal', R_gal)
         # Now begin rotation process
         subhalo_star_data, M_rot = table_rotated_n_angularmomenta(
             subhalo_star_data, R_gal, debug=debug)
