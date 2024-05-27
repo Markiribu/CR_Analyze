@@ -220,13 +220,17 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
         # otherwise halfmassrad is used as radius
         group_catalog = il.groupcat.loadHalos(basePath=basepath,
                                               snapNum=snapnum)
-        index_where = np.where(group_catalog["GroupFirstSub"] == subhaloID)
+        index_where = np.where(group_catalog["GroupFirstSub"] == subhaloID)[0]
         if len(index_where) == 1:
             centralsubhalo = True
             R_gal = group_catalog["Group_R_Crit200"][index_where]
+            if debug is True:
+                print('CENTRAL R200',R_gal)
         else:
             centralsubhalo = False
             R_gal = subhalo_data["SubhaloHalfmassRad"]
+            if debug is True:
+                print('NOTCENTRAL Rgal',Rgal)
         # Now begin rotation process
         subhalo_star_data, M_rot = table_rotated_n_angularmomenta(
             subhalo_star_data, R_gal, debug=debug)
@@ -293,8 +297,8 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
                 if debug is True:
                     print('File found, computing data and appending')
                 save_snap_data_hdf5(subhaloIDatsnapnum,
-                                snapnum, basepath, savefile=file,
-                                debug=debug)
+                                    snapnum, basepath, savefile=file,
+                                    debug=debug)
         except OSError:
             with h5py.File(filename, 'w') as file:
                 if debug is True:
