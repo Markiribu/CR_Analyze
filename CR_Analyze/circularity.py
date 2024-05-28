@@ -260,6 +260,7 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
 
 def generate_data_hdf5(subhaloID, snapnum, basepath,
                        savepath='',
+                       append=True,
                        debug=False):
     """
     Integrates all methods to generate a single file
@@ -279,7 +280,8 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
     - snapnum (int) The snapshot to lookup for data generation
     - basepath (str) The main simulation data folder
     - savepath (str)(optional) folder where computed data is saved
-    - debug (bool) log process in terminal(deprecated in future versions)
+    - append (bool)(optional) if the function should append new data.
+    - debug (bool)(optional) log process in terminal(to be deprecated)
     """
     try:
         import illustris_python as il
@@ -294,6 +296,9 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
         subhaloIDatsnapnum = subfindid_arr[index]
         try:
             with h5py.File(filename, 'r+') as file:
+                if append is False:
+                    print('FILE FOUND, Interrupting...')
+                    return (1)
                 if debug is True:
                     print('File found, computing data and appending')
                 save_snap_data_hdf5(subhaloIDatsnapnum,
