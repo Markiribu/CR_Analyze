@@ -75,7 +75,7 @@ def table_rotate(table, rotation_matrix):
     return (table)
 
 
-def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
+def table_rotated_once_angularmomenta(tabla, reference_tabla):
     """
     Rotates a table of particles by using a given reference table.
     Both must be in dict form with values of "Velocities" and "Coordinates"
@@ -114,8 +114,7 @@ def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
 
 
 def table_rotated_n_angularmomenta(tabla, Rgal,
-                                   N_rotation=3, Rmin=0, Zmin=0.5, Zmax=1,
-                                   debug=False):
+                                   N_rotation=3, Rmin=0, Zmin=0.5, Zmax=1):
     """
     Rotates the table multiple times using consecutive smaller spheres,
     it's assumed that the table "tabla" contains star particles
@@ -137,7 +136,6 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     by default = 0.
     - Zmin (float) minimum metallicity to consider for reference particles.
     - Zmax (float) maximum metallicity to consider for reference particles.
-    - debug (bool) whether to print debugging messages.
     angular momentum or rotation matrix obtained etc.
     Returns:
     - tabla (dict) the dictionary with particles rotated
@@ -176,7 +174,7 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
         # as such we use to rotate the main table,
         # and redefine the definition of tabla.
         tabla, M = table_rotated_once_angularmomenta(
-            tabla, reference_tabla, debug=debug)
+            tabla, reference_tabla)
         # tabla has been redefined,
         # we need to append M to the list of rotation matrixes.
         M_list[n_index] = M
