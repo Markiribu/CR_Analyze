@@ -1,6 +1,6 @@
 # script charged with calculating the circularities of an 
 # imported hdf5 file with illustris_python
-
+import logging
 import numpy as np
 import h5py
 
@@ -162,8 +162,7 @@ def calculate_the_circularities(r, v, U,
     return (circularities, angular_momentums)
 
 
-def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
-                        debug=False):
+def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile):
     """
     Computes the circularities of the given subhaloID at snapnum snapshot.
     Meaning that both should be given for a galaxy(consider the merger trees).
@@ -172,7 +171,6 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
     - snapnum (int) The snapshot to lookup
     - basepath (str) The main simulation data folder\
     - savefile (HDF5 file object) file to save or append data to
-    - debug (bool)(optional)
     """
     try:
         import illustris_python as il
@@ -180,8 +178,7 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
         print("illustris_python is required for this function")
     else:
         index = 99 - snapnum
-        if debug is True:
-            print(f"{subhaloID} snap {snapnum}, index {index}")
+        logging.info(f"selected {subhaloID} with snap {snapnum}, index {index}")
         # Load header data, used afterwards when considering the cosmology
         snap_data = il.groupcat.loadHeader(basePath=basepath,
                                            snapNum=snapnum)
@@ -195,9 +192,8 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
                                                     partType='star',
                                                     fields=fields_to_load)
         # Data for snapshot snapnum loaded, begin calculation process
-        if debug is True:
-            print(f"snapshot {snapnum} loaded")
-            print("Loading subhalo data")
+        logging.info(f"snapshot {snapnum} loaded")
+        logging.info("Loading subhalo data")
         subhalo_data = il.groupcat.loadSingle(basePath=basepath,
                                               snapNum=snapnum,
                                               subhaloID=subhaloID)
@@ -224,16 +220,14 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
         if len(index_where) == 1:
             centralsubhalo = True
             R_gal = group_catalog["Group_R_Crit200"][index_where]
-            if debug is True:
-                print('CENTRAL R200', R_gal)
+            logging.info('This subhalo is central!, R200 = ', R_gal)
         else:
             centralsubhalo = False
             R_gal = subhalo_data["SubhaloHalfmassRad"]
-            if debug is True:
-                print('NOTCENTRAL Rgal', R_gal)
+            logging.info('The subhalo is not central!, using HalfMassRadius', R_gal)
         # Now begin rotation process
         subhalo_star_data, M_rot = table_rotated_n_angularmomenta(
-            subhalo_star_data, R_gal, debug=debug)
+            subhalo_star_data, R_gal)
         # Now calculate the circularities, this requires the potential
         U = subhalo_star_data["Potential"]
         epsilon, J = calculate_the_circularities(r, v, U)
@@ -243,8 +237,7 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
         subhalo_star_data["Circularity"] = epsilon
         # Now particle data is rotated and circularities are calculated
         # Save particle data
-        if debug is True:
-            print(subhalo_star_data)
+        logging.info("Saving the following dictionary as hdf5\n",subhalo_star_data)
         for key in subhalo_star_data.keys():
             savefile[f'{snapnum}/{key}'] = subhalo_star_data[key]
         # Save metadata
@@ -253,15 +246,13 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile,
         else:
             savefile[f"{snapnum}/"].attrs["Rgal"] = R_gal
         savefile[f"{snapnum}/"].attrs["Mrot"] = M_rot
-        if debug is True:
-            print(f'Data created, circularities computed, {snapnum}')
+        logging.info(f'Data created, circularities computed, {snapnum}')
     return 0
 
 
 def generate_data_hdf5(subhaloID, snapnum, basepath,
                        savepath='',
-                       append=True,
-                       debug=False):
+                       append=True):
     """
     Integrates all methods to generate a single file
     containing the circularities and angular momentums of all particles,
@@ -281,7 +272,6 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
     - basepath (str) The main simulation data folder
     - savepath (str)(optional) folder where computed data is saved
     - append (bool)(optional) if the function should append new data.
-    - debug (bool)(optional) log process in terminal(to be deprecated)
     """
     try:
         import illustris_python as il
@@ -299,18 +289,14 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
                 if append is False:
                     print('FILE FOUND, Interrupting...')
                     return (1)
-                if debug is True:
-                    print('File found, computing data and appending')
+                logging.info('File found, computing data and appending in ',filename)
                 save_snap_data_hdf5(subhaloIDatsnapnum,
-                                    snapnum, basepath, savefile=file,
-                                    debug=debug)
+                                    snapnum, basepath, savefile=file)
         except OSError:
             with h5py.File(filename, 'w') as file:
-                if debug is True:
-                    print("File has not been found, creating file")
+                logging.info("File has not been found, creating file with name ",filename)
                 save_snap_data_hdf5(subhaloIDatsnapnum,
-                                    snapnum, basepath, savefile=file,
-                                    debug=debug)
+                                    snapnum, basepath, savefile=file)
     return (0)
 
 

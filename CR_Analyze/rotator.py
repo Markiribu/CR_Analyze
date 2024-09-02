@@ -1,6 +1,7 @@
-# script charged with rotating particles in a dataframe that are distributed in
+# main methods used for rotating particles that are distributed in
 # a disk-like form.
 import numpy as np
+import logging
 
 
 def spherical_coords_from_vector(vector):
@@ -98,13 +99,12 @@ def table_rotated_once_angularmomenta(tabla, reference_tabla, debug=False):
     # Angles of rotation
     r, theta, phi = spherical_coords_from_vector(reference_J)
     M = matrix_from_spherical(r, theta, phi)
-    if debug:
-        # In case of debugging, check rotated angular momentum.
-        print('New J', np.dot(M, reference_J))
-        # And rotation matrix angles, and matrix
-        print('Matrix', M)
-        # Angle
-        print('spherical', r, theta, phi)
+    # show info in log, check rotated angular momentum.
+    logging.info('New J', np.dot(M, reference_J))
+    # And rotation matrix angles, and matrix
+    logging.info('Matrix', M)
+    # Angle
+    logging.info('spherical', r, theta, phi)
 
     # Rotate the table "tabla" by the reference matrix
     tabla["Coordinates"] = table_rotate(tabla["Coordinates"], M)
@@ -155,11 +155,9 @@ def table_rotated_n_angularmomenta(tabla, Rgal,
     tabla["Distance_to_center"] = np.array(
         [np.linalg.norm(r) for r in tabla["Coordinates"]])
     tabla["GFM_Metallicity_solar"] = tabla["GFM_Metallicity"] / 0.0127
-    if debug is True:
-        print("Rotation iteration begun")
+    logging.info("Rotation iteration begun")
     for n_index in range(N_rotation):
-        if debug is True:
-            print(f"Rotation number {n_index + 1}/{N_rotation}")
+        logging.info(f"Rotation number {n_index + 1}/{N_rotation}")
         # Doing a rotation consists of taking the new max radius,
         # and using as reference only particles inside this radius,
         # and are in the range of given solar metallicity.
