@@ -1,3 +1,3 @@
-__all__ = ["rotator","circularity"]
+__all__ = ["rotator","circularity","illustristng"]
 
 from . import *
