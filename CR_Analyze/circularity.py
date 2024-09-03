@@ -2,7 +2,6 @@
 # imported hdf5 file with illustris_python
 import logging
 import numpy as np
-import h5py
 
 # import of methods
 from .rotator import table_rotated_n_angularmomenta
