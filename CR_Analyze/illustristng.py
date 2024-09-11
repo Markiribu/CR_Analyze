@@ -167,6 +167,10 @@ def append_haloID(subfindid, snap, snaps_arr, basepath, savepath=''):
     """
     # Check required libraries
     optional_dependencies()
+    # import them
+    import illustris_python as il
+    import h5py
+    from tqdm import tqdm
     # load the tree
     print(f'loading tree of {subfindid}')
     firstsubfind_tree = il.sublink.loadTree(basepath,snap,subfindid,fields=["GroupFirstSub"])
