@@ -192,6 +192,9 @@ def append_haloID(subfindid, snap, snaps_arr, basepath, savepath=''):
             haloID = xindx
             if len(haloID) > 1:
                 logging.warning("I seem to have found more than 1 halo, please revise")
+            if len(haloID) == 0:
+                logging.warning("The subhalo does not seem to belong to a halo, please revise, skipping snap")
+                continue
             # update the progressbar
             pbar.set_description(f'saving: snap {snapnum}')
             # now that haloID has been calculated, register as attribute
