@@ -1,6 +1,7 @@
 # Methods used for executing on illustrisTNG data
 # This can probably be generalized to other simulations
 from .circularity import *
+import logging
 
 def optional_dependencies(hdf5=True,illustris=True,progressbar=True):
     if hdf5:
@@ -151,57 +152,18 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
     return (0)
 
 
-                 basepath='/virgotng/universe/IllustrisTNG/TNG50-1/output'):
+def append_haloID(subfindid, snap, snaps_arr, basepath, savepath=''):
     """
-    Obtains all of the HaloIDs for the given array of subhalos.
-    Esentially generating a merger tree that tracks the HaloID of the subhalo considered.
-    As it is being estimated it adds it to the subhaloid provided.
-    Parameters:
-    Subfind_arr (1-D np.array) The array containing all subfinds of interest, only central subhalos.
-    snap (int) Snapshot at which the subfind array is given
-    Returns:
-    haloID_matrix (2-D np.array) A 2-D array where, row is the snapshot(index=0 => snap=99) and col is the subfindID array in increasing order.
-    """
-    # Check required libraries
-    optional_dependencies()
-    # load the tree
-    firstsubfind_tree = il.sublink.loadTree(basepath,snap,subfindid,fields=["GroupFirstSub"])
-    # Start snapshot cycle
-    with tqdm(total=len(snaps_arr)) as pbar:
-        for snapnum in snaps_arr:
-            # Begin cycle
-            snapid = 99 - snapnum
-            # Load groupcat of all halos and their respective firstsubfind
-            halocat = il.groupcat.loadHalos('/virgotng/universe/IllustrisTNG/TNG50-1/output',snapnum,fields=["GroupFirstSub"])
-            # Now we strip the unnecesary values like -1
-            # since we know that the halo we search for has at least 1 subhalo
-            halocat = halocat[halocat != -1]
-            # Now lets do and intersection of the 2 arrays
-            xy, xindx, yindx = np.intersect1d(halocat,firstsubfind_tree[snapid],return_indices=True)
-            haloID = xindx
-            # now that haloID has been calculated, register as attribute
-            with h5py.File(f'{savepath}subhalo_{subfindid}.hdf5', 'r+') as data:
-                data[f'{snapnum}'].attrs['HaloID'] = haloID
-            # update the progressbar
-            pbar.set_description(f'processing: snap {snapnum}')
-            pbar.update(1)
-            pass
-        pass
-    return 0
-
-
-def haloIDs_tree(subfindid, snap, snaps_arr, savepath='',
-                 basepath='/virgotng/universe/IllustrisTNG/TNG50-1/output'):
-    """
-    Obtains all of the HaloIDs for the given array of subhalos.
+    Obtains all of the HaloIDs for the given subhalo.
     Esentially generating a merger tree that tracks the HaloID of the subhalo considered.
     As it is being estimated it adds it as an attribute of the snapshot
     under filename 'subhalo_subfindid.hdf5'.
     Parameters:
-    Subfind_arr (1-D np.array) The array containing all subfinds of interest, only central subhalos.
-    snap (int) Snapshot at which the subfind array is given
+    subfindid (int) the SubhaloID, only central subhalos are recommended.
+    snap (int) Snapshot at which the subhalo is given.
+    snaps_arr (1-D np.array) array of snapshots  where to obtain the HaloID.
     Returns:
-    haloID_matrix (2-D np.array) A 2-D array where, row is the snapshot(index=0 => snap=99) and col is the subfindID array in increasing order.
+    0 in case there where no problems.
     """
     # Check required libraries
     optional_dependencies()
@@ -225,8 +187,7 @@ def haloIDs_tree(subfindid, snap, snaps_arr, savepath='',
             xy, xindx, yindx = np.intersect1d(halocat,firstsubfind_tree[snapid],return_indices=True)
             haloID = xindx
             if len(haloID) > 1:
-                print(haloID, 'snap', snapnum)
-                raise "I seem to have found more than 1 halo, please revise"
+                logging.warning("I seem to have found more than 1 halo, please revise")
             # update the progressbar
             pbar.set_description(f'saving: snap {snapnum}')
             # now that haloID has been calculated, register as attribute
