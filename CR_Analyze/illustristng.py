@@ -2,16 +2,24 @@
 # This can probably be generalized to other simulations
 from .circularity import *
 
-def optional_dependencies():
-    try:
-        import h5py
-    except ImportError:
-        raise SystemExit("h5py is required in order to save computed data!")
-    try:
-        import illustris_python as il
-    except ImportError:
-        raise SystemExit("illustris_python is required in order to load data!")
+def optional_dependencies(hdf5=True,illustris=True,progressbar=True):
+    if hdf5:
+        try:
+            import h5py
+        except ImportError:
+            raise SystemExit("h5py is required in order to save computed data!")
+    if illustris:
+        try:
+            import illustris_python as il
+        except ImportError:
+            raise SystemExit("illustris_python is required in order to load data!")
+    if progressbar:
+        try:
+            from tqdm import tqdm
+        except ImportError:
+            raise SystemExit("tqdm is required for showing progress bars in long tasks")
     return 0
+
 
 def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile):
     """
@@ -23,7 +31,7 @@ def save_snap_data_hdf5(subhaloID, snapnum, basepath, savefile):
     - basepath (str) The main simulation data folder\
     - savefile (HDF5 file object) file to save or append data to
     """
-    optional_dependencies()
+    optional_dependencies(progressbar=False)
     index = 99 - snapnum
     logging.info(f"selected {subhaloID} with snap {snapnum}, index {index}")
     # Load header data, used afterwards when considering the cosmology
@@ -120,7 +128,7 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
     - savepath (str)(optional) folder where computed data is saved
     - append (bool)(optional) if the function should append new data.
     """
-    optional_dependencies()
+    optional_dependencies(progressbar=False)
     filename = f'{savepath}subhalo_{subhaloID}.hdf5'
     index = 99 - snapnum
     # now estimate the subhaloid at the requested snap
@@ -142,3 +150,97 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
                                 snapnum, basepath, savefile=file)
     return (0)
 
+
+                 basepath='/virgotng/universe/IllustrisTNG/TNG50-1/output'):
+    """
+    Obtains all of the HaloIDs for the given array of subhalos.
+    Esentially generating a merger tree that tracks the HaloID of the subhalo considered.
+    As it is being estimated it adds it to the subhaloid provided.
+    Parameters:
+    Subfind_arr (1-D np.array) The array containing all subfinds of interest, only central subhalos.
+    snap (int) Snapshot at which the subfind array is given
+    Returns:
+    haloID_matrix (2-D np.array) A 2-D array where, row is the snapshot(index=0 => snap=99) and col is the subfindID array in increasing order.
+    """
+    # Check required libraries
+    optional_dependencies()
+    # load the tree
+    firstsubfind_tree = il.sublink.loadTree(basepath,snap,subfindid,fields=["GroupFirstSub"])
+    # Start snapshot cycle
+    with tqdm(total=len(snaps_arr)) as pbar:
+        for snapnum in snaps_arr:
+            # Begin cycle
+            snapid = 99 - snapnum
+            # Load groupcat of all halos and their respective firstsubfind
+            halocat = il.groupcat.loadHalos('/virgotng/universe/IllustrisTNG/TNG50-1/output',snapnum,fields=["GroupFirstSub"])
+            # Now we strip the unnecesary values like -1
+            # since we know that the halo we search for has at least 1 subhalo
+            halocat = halocat[halocat != -1]
+            # Now lets do and intersection of the 2 arrays
+            xy, xindx, yindx = np.intersect1d(halocat,firstsubfind_tree[snapid],return_indices=True)
+            haloID = xindx
+            # now that haloID has been calculated, register as attribute
+            with h5py.File(f'{savepath}subhalo_{subfindid}.hdf5', 'r+') as data:
+                data[f'{snapnum}'].attrs['HaloID'] = haloID
+            # update the progressbar
+            pbar.set_description(f'processing: snap {snapnum}')
+            pbar.update(1)
+            pass
+        pass
+    return 0
+
+
+def haloIDs_tree(subfindid, snap, snaps_arr, savepath='',
+                 basepath='/virgotng/universe/IllustrisTNG/TNG50-1/output'):
+    """
+    Obtains all of the HaloIDs for the given array of subhalos.
+    Esentially generating a merger tree that tracks the HaloID of the subhalo considered.
+    As it is being estimated it adds it as an attribute of the snapshot
+    under filename 'subhalo_subfindid.hdf5'.
+    Parameters:
+    Subfind_arr (1-D np.array) The array containing all subfinds of interest, only central subhalos.
+    snap (int) Snapshot at which the subfind array is given
+    Returns:
+    haloID_matrix (2-D np.array) A 2-D array where, row is the snapshot(index=0 => snap=99) and col is the subfindID array in increasing order.
+    """
+    # Check required libraries
+    optional_dependencies()
+    # load the tree
+    print(f'loading tree of {subfindid}')
+    firstsubfind_tree = il.sublink.loadTree(basepath,snap,subfindid,fields=["GroupFirstSub"])
+    # Start snapshot cycle
+    with tqdm(total=len(snaps_arr)) as pbar:
+        for snapnum in snaps_arr:
+            # Begin cycle
+            snapid = 99 - snapnum
+            # Load groupcat of all halos and their respective firstsubfind
+            pbar.set_description(f'loading halocat of snap {snapnum}')
+            halocat = il.groupcat.loadHalos('/virgotng/universe/IllustrisTNG/TNG50-1/output',snapnum,fields=["GroupFirstSub"])
+            # Now we strip the unnecesary values like -1
+            # since we know that the halo we search for has at least 1 subhalo
+            halocat = halocat[halocat != -1]
+            # Now lets do and intersection of the 2 arrays
+            # its an intersection in order to catch problems where the halo appears twice
+            pbar.set_description(f'processing: snap {snapnum}')
+            xy, xindx, yindx = np.intersect1d(halocat,firstsubfind_tree[snapid],return_indices=True)
+            haloID = xindx
+            if len(haloID) > 1:
+                print(haloID, 'snap', snapnum)
+                raise "I seem to have found more than 1 halo, please revise"
+            # update the progressbar
+            pbar.set_description(f'saving: snap {snapnum}')
+            # now that haloID has been calculated, register as attribute
+            with h5py.File(f'{savepath}subhalo_{subfindid}.hdf5', 'r+') as data:
+                data[f'{snapnum}'].attrs['HaloID'] = haloID[0]
+            pbar.update(1)
+            pass
+        pass
+    return 0
+
+
+def CR_track(subfindid):
+    """
+    Tracks the counterrotating particles back in time and assigns them an origin.
+    Specifically only considers exsitu particles.
+    """
+    return 0
