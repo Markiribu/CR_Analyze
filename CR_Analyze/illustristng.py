@@ -212,19 +212,24 @@ def obtain_all_nextprogenitors(tree,rootid,snapid):
     Gives the index in the tree of all nextprogenitors for the given snapshotid.
     Esentially all other parents besides the main branch.
     """
-    nextprogenitorsid_dict = {}
+    nextprogenitors_dict = {}
     nextprogenitorid = tree['NextProgenitorID'][snapid+1]
     nextprogenitorsids_list = []
     while nextprogenitorid != -1:
         indexintree = nextprogenitorid - rootid
         nextprogenitorsids_list.append(int(indexintree))
         nextprogenitorid = tree['NextProgenitorID'][indexintree]
-    nextprogenitorsids_arr = np.array(nextprogenitorsids_list)
-    for field in tree.keys():
-        nextprogenitors_dict = tree[field][nextprogenitorsids_arr]
+    nextprogenitorsids_arr = np.array(nextprogenitorsids_list, dtype='int64')
     nextprogenitors_dict['indexesintree'] = nextprogenitorsids_arr
     nextprogenitors_dict['count'] = len(nextprogenitorsids_arr)
-    return nextprogenitorsid_dict
+    if len(nextprogenitorsids_list) == 0:
+        return nextprogenitors_dict
+    for field in tree.keys():
+        if field is 'count':
+            continue
+        nextprogenitors_dict[field] = tree[field][nextprogenitors_dict['indexesintree']]
+    return nextprogenitors_dict
+
 
 def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                    basepath='/virgotng/universe/IllustrisTNG/TNG50-1/output',
