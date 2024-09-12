@@ -206,9 +206,99 @@ def append_haloID(subfindid, snap, snaps_arr, basepath, savepath=''):
     return 0
 
 
-def CR_track(subfindid):
+def obtain_all_nextprogenitors(tree,rootid,snapid):
     """
-    Tracks the counterrotating particles back in time and assigns them an origin.
-    Specifically only considers exsitu particles.
+    Gives the index in the tree of all nextprogenitors for the given snapshotid.
+    Esentially all other parents besides the main branch.
     """
-    return 0
+    nextprogenitorsid_dict = {}
+    nextprogenitorid = tree['NextProgenitorID'][snapid+1]
+    nextprogenitorsids_list = []
+    while nextprogenitorid != -1:
+        indexintree = nextprogenitorid - rootid
+        nextprogenitorsids_list.append(indexintree)
+        nextprogenitorid = tree['NextProgenitorID'][indexintree]
+    for field in tree.keys():
+        nextprogenitors_dict = tree[field][nextprogenitorsids_list]
+    nextprogenitors_dict['indexesintree'] = nextprogenitorsids_list
+    nextprogenitors_dict['count'] = len(nextprogenitorsids_list)
+    return nextprogenitorsid_dict
+
+def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
+                   basepath='/virgotng/universe/IllustrisTNG/TNG50-1/output',
+                   deep_tracking=False, halotracker=np.array()):
+    """
+    Tracks the counterrotating particles back in time and assigns them an origin. Must be Exsitu particles.
+    It does this in a 2 step process. first it looks at the merger trees, and finds to which nextprogenitor
+    The particles come from, then it takes any particles that a progenitor wasn't determined and searches for the last
+    subhalo it was from before getting to the main branch by loading the main halo.
+    The 2nd step is optional and is available as a parameter.
+    Parameters:
+    subfindid (int) the SubfindID
+    snap (int) SnapNum
+    maxsnapdepth (int) Maximum snap that the tracker searches through
+    deep_tracking (bool) Whether to run the 2nd search step by loading all particles in the FoF Halo.
+    halo_tracker (np.array(int)) Array with the HaloIDs starting with snap 99
+    Returns:
+    origins (dict) a dictionmary with fields (subfindid, snap) with the corresponding particleids
+    in case no origin was determined it will be given under 'undefined'
+    """
+    origins = {}
+    # required dependencies
+    optional_dependencies(hdf5=False).
+    # Check parameters for disallowed values
+    if (maxsnapdepth >= 99) or (maxsnapdepth < 0):
+        raise Exception('maxsnapdepth must be between 0-98')
+    if (deep_tracking is True) and (len(halotracker) == 0):
+        raise Exception('A list of HaloIDs must be given under halotracker')
+    #####
+    # Load initial tree
+    fieldstoload = ['SubfindID','NextProgenitorID','SubhaloID','SubhaloIDRaw','SnapNum','FirstProgenitorID']
+    merger_tree = il.sublink.loadTree(basepath, snapnum, subfindid, fields=fieldstoload)
+    # Cycle trough the given snapshots
+    maxsnapid = 99 - maxsnapdepth
+    rootid = merger_tree['SubhaloID'][0]
+    particleidsnotfound = particleIDs.copy() # we assign a new variable to the particleIDs that we'll be searching for
+    for snapid in range(0,maxsnapid):
+        # first obtain all nextprogenitors for the snapshot within the tree
+        nextprogenitor_dict = obtain_all_nextprogenitors(merger_tree,rootid,snapid)
+        # Now lets check one by one
+        for i in range(nextprogenitor_dict['count']):
+            nextsubfindid = nextprogenitor_dict['SubfindID'][i]
+            nextsnapnum = nextprogenitor_dict['SnapNum'][i]
+            # Load stellar particles and their IDs
+            nextprogenitordata = il.snapshot.loadSubhalo(basepath, nextsnapnum, nextsubfindid, 'star', fields=['ParticleIDs'])
+            # if count is zero, then skip
+            if nextprogenitordata['count'] == 0:
+                continue
+            # Now we check for any intersection between the particleids in the nextprogenitor and
+            # The particle ids we are still searching for.
+            indexfound = np.isin(particleidsnotfound,nextprogenitordata['ParticleIDs'])
+            indexnotfound = np.invert(indexfound)
+            particleidsfound = particleidsnotfound[indexfound]
+            if len(particleidsfound) == 0:
+                continue
+            else:
+                particleidsnotfound = particleidsnotfound[indexnotfound]
+                origin_name = 'SubfindID:' + str() + '|Snap:' + str()
+                origins[origin_name] = particleidsfound
+                if len(particleidsnotfound) == 0:
+                    break
+                pass
+            continue
+        # before going with next snapshot lets check there are still particleids to find
+        if len(particleidsnotfound) == 0:
+            break
+        # Otherwise just continue
+        continue
+    # All snapshots checked for nextprogenitors
+    # If deep_search is on and there are still particleids to find then continue searching
+    if (deep_tracking is True) and (len(particleidsnotfound) != 0):
+        print('This is not Finished!')
+        pass
+    # If even then there are still particleids to find then assign them undefined
+    if len(particleidsnotfound) != 0:
+        origins['Undefined'] = particleidsnotfound
+        pass
+    # Now return all of the estimated origins.
+    return origins
