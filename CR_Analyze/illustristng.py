@@ -245,7 +245,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
     """
     origins = {}
     # required dependencies
-    optional_dependencies(hdf5=False).
+    optional_dependencies(hdf5=False)
     # Check parameters for disallowed values
     if (maxsnapdepth >= 99) or (maxsnapdepth < 0):
         raise Exception('maxsnapdepth must be between 0-98')
