@@ -217,7 +217,7 @@ def obtain_all_nextprogenitors(tree,rootid,snapid):
     nextprogenitorsids_list = []
     while nextprogenitorid != -1:
         indexintree = nextprogenitorid - rootid
-        nextprogenitorsids_list.append(indexintree)
+        nextprogenitorsids_list.append(int(indexintree))
         nextprogenitorid = tree['NextProgenitorID'][indexintree]
     nextprogenitorsids_arr = np.array(nextprogenitorsids_list)
     for field in tree.keys():
