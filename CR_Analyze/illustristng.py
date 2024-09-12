@@ -2,6 +2,7 @@
 # This can probably be generalized to other simulations
 from .circularity import *
 import logging
+import numpy as np
 
 def optional_dependencies(hdf5=True,illustris=True,progressbar=True):
     if hdf5:
@@ -218,10 +219,11 @@ def obtain_all_nextprogenitors(tree,rootid,snapid):
         indexintree = nextprogenitorid - rootid
         nextprogenitorsids_list.append(indexintree)
         nextprogenitorid = tree['NextProgenitorID'][indexintree]
+    nextprogenitorsids_arr = np.array(nextprogenitorsids_list)
     for field in tree.keys():
-        nextprogenitors_dict = tree[field][nextprogenitorsids_list]
-    nextprogenitors_dict['indexesintree'] = nextprogenitorsids_list
-    nextprogenitors_dict['count'] = len(nextprogenitorsids_list)
+        nextprogenitors_dict = tree[field][nextprogenitorsids_arr]
+    nextprogenitors_dict['indexesintree'] = nextprogenitorsids_arr
+    nextprogenitors_dict['count'] = len(nextprogenitorsids_arr)
     return nextprogenitorsid_dict
 
 def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
