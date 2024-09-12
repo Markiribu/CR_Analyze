@@ -275,7 +275,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
             nextsubfindid = nextprogenitor_dict['SubfindID'][i]
             nextsnapnum = nextprogenitor_dict['SnapNum'][i]
             # Load stellar particles and their IDs
-            nextprogenitordata = il.snapshot.loadSubhalo(basepath, nextsnapnum, nextsubfindid, 'star', fields=['ParticleIDs'])
+            nextprogenitordata = il.snapshot.loadSubhalo(basepath, nextsnapnum, nextsubfindid, 'star', fields=['ParticleIDs','Masses'])
             # if count is zero, then skip
             if nextprogenitordata['count'] == 0:
                 continue
