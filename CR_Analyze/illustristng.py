@@ -288,7 +288,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                 continue
             else:
                 particleidsnotfound = particleidsnotfound[indexnotfound]
-                origin_name = 'SubfindID:' + str() + '|Snap:' + str()
+                origin_name = 'SubfindID:' + str(nextsubfindid) + '|Snap:' + str(nextsnapnum)
                 origins[origin_name] = particleidsfound
                 if len(particleidsnotfound) == 0:
                     break
