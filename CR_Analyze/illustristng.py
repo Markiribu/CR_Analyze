@@ -226,7 +226,7 @@ def obtain_all_nextprogenitors(tree,rootid,snapid):
 
 def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                    basepath='/virgotng/universe/IllustrisTNG/TNG50-1/output',
-                   deep_tracking=False, halotracker=np.array()):
+                   deep_tracking=False, halotracker=[]):
     """
     Tracks the counterrotating particles back in time and assigns them an origin. Must be Exsitu particles.
     It does this in a 2 step process. first it looks at the merger trees, and finds to which nextprogenitor
