@@ -153,60 +153,6 @@ def generate_data_hdf5(subhaloID, snapnum, basepath,
     return (0)
 
 
-def append_haloID(subfindid, snap, snaps_arr, basepath, savepath=''):
-    """
-    Obtains all of the HaloIDs for the given subhalo.
-    Esentially generating a merger tree that tracks the HaloID of the subhalo considered.
-    As it is being estimated it adds it as an attribute of the snapshot
-    under filename 'subhalo_subfindid.hdf5'.
-    Parameters:
-    subfindid (int) the SubhaloID, only central subhalos are recommended.
-    snap (int) Snapshot at which the subhalo is given.
-    snaps_arr (1-D np.array) array of snapshots  where to obtain the HaloID.
-    Returns:
-    0 in case there where no problems.
-    """
-    # Check required libraries
-    optional_dependencies()
-    # import them
-    import illustris_python as il
-    import h5py
-    from tqdm import tqdm
-    # load the tree
-    print(f'loading tree of {subfindid}')
-    firstsubfind_tree = il.sublink.loadTree(basepath,snap,subfindid,fields=["GroupFirstSub"])
-    # Start snapshot cycle
-    with tqdm(total=len(snaps_arr)) as pbar:
-        for snapnum in snaps_arr:
-            # Begin cycle
-            snapid = 99 - snapnum
-            # Load groupcat of all halos and their respective firstsubfind
-            pbar.set_description(f'loading halocat of snap {snapnum}')
-            halocat = il.groupcat.loadHalos('/virgotng/universe/IllustrisTNG/TNG50-1/output',snapnum,fields=["GroupFirstSub"])
-            # Now we strip the unnecesary values like -1
-            # since we know that the halo we search for has at least 1 subhalo
-            halocat = halocat[halocat != -1]
-            # Now lets do and intersection of the 2 arrays
-            # its an intersection in order to catch problems where the halo appears twice
-            pbar.set_description(f'processing: snap {snapnum}')
-            xy, xindx, yindx = np.intersect1d(halocat,firstsubfind_tree[snapid],return_indices=True)
-            haloID = xindx
-            if len(haloID) > 1:
-                logging.warning("I seem to have found more than 1 halo, please revise")
-            if len(haloID) == 0:
-                logging.warning("The subhalo does not seem to belong to a halo, please revise, skipping snap")
-                continue
-            # update the progressbar
-            pbar.set_description(f'saving: snap {snapnum}')
-            # now that haloID has been calculated, register as attribute
-            with h5py.File(f'{savepath}subhalo_{subfindid}.hdf5', 'r+') as data:
-                data[f'{snapnum}'].attrs['HaloID'] = haloID[0]
-            pbar.update(1)
-            pass
-        pass
-    return 0
-
-
 def obtain_all_nextprogenitors(tree,rootid,snapid):
     """
     Gives the index in the tree of all nextprogenitors for the given snapshotid.
@@ -261,7 +207,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
         raise Exception('A list of HaloIDs must be given under halotracker')
     #####
     # Load initial tree
-    fieldstoload = ['SubfindID','NextProgenitorID','SubhaloID','SubhaloIDRaw','SnapNum','FirstProgenitorID']
+    fieldstoload = ['SubfindID','NextProgenitorID','SubhaloID','SubhaloIDRaw','SnapNum','FirstProgenitorID','SubhaloGrNr']
     merger_tree = il.sublink.loadTree(basepath, snapnum, subfindid, fields=fieldstoload)
     # Cycle trough the given snapshots
     maxsnapid = 99 - maxsnapdepth
@@ -300,9 +246,23 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
         # Otherwise just continue
         continue
     # All snapshots checked for nextprogenitors
-    # If deep_search is on and there are still particleids to find then continue searching
+    # If deep_tracking is on and there are still particleids to find then continue searching
+    # deep_tracking will first estimate the snapshot that the particle was accreted into the main branch
+    # then it will estimate the snapshots at which the particle was incorporated into the FoF Halo
+    # Having these 2 data points then, it searches for the last subhalo outside of the main branch that the particle was a part of.
     if (deep_tracking is True) and (len(particleidsnotfound) != 0):
-        print('This is not Finished!')
+        # Lets setup the SH_origins, saving the snap when the particles were incorporated into the main branch.
+        SH_origins = {} # format {'55':np.array(particleids),...}
+        particleidsSHnotfound = particleidsnotfound.copy()
+        # Lets setup FoF_origins, saving snap at which the particles appear in the Halo
+        FoF_origins = {}
+        particleidsFoFnotfound = particleidsnotfound.copy()
+        # Begin first passtrough trough all snapshots
+        for snapid in range(0,maxsnapid):
+            #inverse snapid, to start from the oldest snapshot
+            snapid_inv = maxsnapid - snapid + 1
+            # Lets start checking the Subhalo
+            pass
         pass
     # If even then there are still particleids to find then assign them undefined
     if len(particleidsnotfound) != 0:
