@@ -339,7 +339,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                                 logging.warning('This origin was already registered, please check!, adding as extra', origin_name)
                                 origin_name += 'EXTRA'
                                 pass
-                            origins[origin_name] = particleidsfound
+                            origins[origin_name] = particleidsbatchfound
                             pass
                         pass
                     # lets clear the subfind_data
