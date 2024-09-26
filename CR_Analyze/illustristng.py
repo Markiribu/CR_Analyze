@@ -336,7 +336,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                             particleidsnotfound = particleidsnotfound[indexfound]
                             origin_name = 'SubfindID:' + str(subfindid) + '|Snap:' + str(snapnum)
                             if origin_name in origins.keys():
-                                logging.warning('This origin was already registered, please check!, adding as extra', origin_name)
+                                logging.warning(f'This origin was already registered, please check!, adding as extra {origin_name}')
                                 origin_name += 'EXTRA'
                                 pass
                             origins[origin_name] = particleidsbatchfound
@@ -371,7 +371,7 @@ def batch_maker(SH_origins,FoF_origins):
         for SHsnap in SH_origins.keys():
             particleidsinSH = SH_origins[SHsnap]
             if int(SHsnap) < int(FoFsnap):
-                logging.info('Beware SHsnap lower than FoFsnap! SHsnap:',SHsnap,' |FoFsnap:',FoFsnap)
+                logging.info(f'Beware SHsnap lower than FoFsnap! SHsnap:{SHsnap}|FoFsnap:{FoFsnap}')
                 continue
             elif particleidsinSH.size == 0:
                 logging.info('This SH_origins is already empty, not checking...')
