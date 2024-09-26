@@ -272,8 +272,9 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                     indexSHnotfound = np.invert(indexSHfound)
                     particleidsSHfound = particleidsSHnotfound[indexSHfound]
                     particleidsSHnotfound = particleidsSHnotfound[indexSHnotfound]
-                    origin_name = str(snapnum - 1)
-                    SH_origins[origin_name] = particleidsSHfound
+                    if particleidsSHfound.size != 0:
+                        origin_name = str(snapnum - 1)
+                        SH_origins[origin_name] = particleidsSHfound
                     pass
                 # cleanupdata
                 del subhalodata
@@ -288,8 +289,9 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                     indexFoFnotfound = np.invert(indexFoFfound)
                     particleidsFoFfound = particleidsFoFnotfound[indexFoFfound]
                     particleidsFoFnotfound = particleidsFoFnotfound[indexFoFnotfound]
-                    origin_name = str(snapnum - 1)
-                    FoF_origins[origin_name] = particleidsFoFfound
+                    if particleidsFoFfound.size != 0:
+                        origin_name = str(snapnum - 1)
+                        FoF_origins[origin_name] = particleidsFoFfound
                     pass
                 # cleanupdata
                 del fofdata
@@ -395,4 +397,6 @@ def batch_maker(SH_origins,FoF_origins):
         # All possible SH_origins checked, next FoF!
         continue
     # All pairs made!
+    #debug temporary
+    print('batches',batches)
     return batches
