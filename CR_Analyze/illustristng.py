@@ -266,12 +266,15 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
             if particleidsSHnotfound.size != 0:
                 subhalodata = il.snapshot.loadSubhalo(basepath, snapnum, subfindid,
                                                       'star', fields=['ParticleIDs','Masses'])
-                indexSHfound = np.isin(particleidsSHnotfound,subhalodata['ParticleIDs'])
-                indexSHnotfound = np.invert(indexSHfound)
-                particleidsSHfound = particleidsSHnotfound[indexSHfound]
-                particleidsSHnotfound = particleidsSHnotfound[indexSHnotfound]
-                origin_name = str(snapnum - 1)
-                SH_origins[origin_name] = particleidsSHfound
+                # check is not empty
+                if subhalodata['count'] != 0:
+                    indexSHfound = np.isin(particleidsSHnotfound,subhalodata['ParticleIDs'])
+                    indexSHnotfound = np.invert(indexSHfound)
+                    particleidsSHfound = particleidsSHnotfound[indexSHfound]
+                    particleidsSHnotfound = particleidsSHnotfound[indexSHnotfound]
+                    origin_name = str(snapnum - 1)
+                    SH_origins[origin_name] = particleidsSHfound
+                    pass
                 # cleanupdata
                 del subhalodata
                 pass
@@ -279,12 +282,15 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
             if particleidsFoFnotfound.size != 0:
                 fofdata = il.snapshot.loadHalo(basepath, snapnum, haloid,
                                                'star', fields=['ParticleIDs','Masses'])
-                indexFoFfound = np.isin(particleidsFoFnotfound,fofdata['ParticleIDs'])
-                indexFoFnotfound = np.invert(indexFoFfound)
-                particleidsFoFfound = particleidsFoFnotfound[indexFoFfound]
-                particleidsFoFnotfound = particleidsFoFnotfound[indexFoFnotfound]
-                origin_name = str(snapnum - 1)
-                FoF_origins[origin_name] = particleidsFoFfound
+                # check is not empty
+                if fofdata['count'] != 0:
+                    indexFoFfound = np.isin(particleidsFoFnotfound,fofdata['ParticleIDs'])
+                    indexFoFnotfound = np.invert(indexFoFfound)
+                    particleidsFoFfound = particleidsFoFnotfound[indexFoFfound]
+                    particleidsFoFnotfound = particleidsFoFnotfound[indexFoFnotfound]
+                    origin_name = str(snapnum - 1)
+                    FoF_origins[origin_name] = particleidsFoFfound
+                    pass
                 # cleanupdata
                 del fofdata
                 pass
@@ -317,21 +323,24 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                         continue
                     # Lets load the particle data
                     subfind_data = il.snapshot.loadSubhalo(basepath, snapnum, subfindid, 'stars', fields=['ParticleIDs','Masses'])
-                    # Now lets check if there are common particleids
-                    indexbatchfound = np.isin(particleidbatch,subfind_data['ParticleIDs'])
-                    indexbatchnotfound = np.invert(indexbatchfound)
-                    particleidsbatchfound = particleidbatch[indexbatchfound]
-                    if particleidsbatchfound.size != 0:
-                        particlebatch = particleidbatch[indexnotfound]
-                        # lets take a moment to delete the ids from the global not found list
-                        indexfound = np.isin(particleidsnotfound,particleidsbatchfound)
-                        particleidsnotfound = particleidsnotfound[indexfound]
-                        origin_name = 'SubfindID:' + str(subfindid) + '|Snap:' + str(snapnum)
-                        if origin_name in origins.keys():
-                            logging.warning('This origin was already registered, please check!, adding as extra', origin_name)
-                            origin_name += 'EXTRA'
+                    # check is not empty
+                    if subfind_data['count'] != 0:
+                        # Now lets check if there are common particleids
+                        indexbatchfound = np.isin(particleidbatch,subfind_data['ParticleIDs'])
+                        indexbatchnotfound = np.invert(indexbatchfound)
+                        particleidsbatchfound = particleidbatch[indexbatchfound]
+                        if particleidsbatchfound.size != 0:
+                            particlebatch = particleidbatch[indexnotfound]
+                            # lets take a moment to delete the ids from the global not found list
+                            indexfound = np.isin(particleidsnotfound,particleidsbatchfound)
+                            particleidsnotfound = particleidsnotfound[indexfound]
+                            origin_name = 'SubfindID:' + str(subfindid) + '|Snap:' + str(snapnum)
+                            if origin_name in origins.keys():
+                                logging.warning('This origin was already registered, please check!, adding as extra', origin_name)
+                                origin_name += 'EXTRA'
+                                pass
+                            origins[origin_name] = particleidsfound
                             pass
-                        origins[origin_name] = particleidsfound
                         pass
                     # lets clear the subfind_data
                     del subfind_data
