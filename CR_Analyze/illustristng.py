@@ -301,8 +301,8 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
         # So checking should be direct.
         for batch_name in batches.keys():
             particleidbatch = batches[batch_name]
-            minsnap = batch_name[:2]
-            maxsnap = batch_name[3:]
+            minsnap = int(batch_name[:2])
+            maxsnap = int(batch_name[3:])
             for snapnum in range(minsnap,maxsnap):
                 snapid = 99 - snapnum
                 # Now what is the subfindid of the main branch at this snap?
