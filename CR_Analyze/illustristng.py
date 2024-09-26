@@ -371,7 +371,7 @@ def batch_maker(SH_origins,FoF_origins):
         for SHsnap in SH_origins.keys():
             particleidsinSH = SH_origins[SHsnap]
             if int(SHsnap) < int(FoFsnap):
-                logging.warning('Beware SHsnap lower than FoFsnap! SHsnap:',SHsnap,' |FoFsnap:',FoFsnap)
+                logging.info('Beware SHsnap lower than FoFsnap! SHsnap:',SHsnap,' |FoFsnap:',FoFsnap)
                 continue
             elif particleidsinSH.size == 0:
                 logging.info('This SH_origins is already empty, not checking...')
