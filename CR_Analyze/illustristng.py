@@ -258,7 +258,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
         # Begin first passtrough trough all snapshots
         for snapid in range(0,maxsnapid):
             #inverse snapid, to start from the oldest snapshot
-            snapid_inv = maxsnapid - snapid + 1
+            snapid_inv = maxsnapid - snapid - 1
             # Lets start checking the Subhalo
             snapnum = merger_tree['SnapNum'][snapid_inv]
             haloid = merger_tree['SubhaloGrNr'][snapid_inv]
@@ -363,6 +363,9 @@ def batch_maker(SH_origins,FoF_origins):
     Returns:
     batches (dict) format {'FoFsnap|SHsnap':[particleids]}
     """
+    #temporary
+    print('SH',SH_origins)
+    print('FoF',FoF_origins)
     batches = {}
     # For making the batches we want to go trough all combinations of FoF origins and SH origins, making pairs.
     logging.info('Making pairs of snaps')
