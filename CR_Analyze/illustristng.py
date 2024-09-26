@@ -179,7 +179,7 @@ def obtain_all_nextprogenitors(tree,rootid,snapid):
 
 def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                    basepath='/virgotng/universe/IllustrisTNG/TNG50-1/output',
-                   deep_tracking=False, halotracker=[]):
+                   deep_tracking=False):
     """
     Tracks the counterrotating particles back in time and assigns them an origin. Must be Exsitu particles.
     It does this in a 2 step process. first it looks at the merger trees, and finds to which nextprogenitor
@@ -203,8 +203,6 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
     # Check parameters for disallowed values
     if (maxsnapdepth >= 99) or (maxsnapdepth < 0):
         raise Exception('maxsnapdepth must be between 0-98')
-    if (deep_tracking is True) and (len(halotracker) == 0):
-        raise Exception('A list of HaloIDs must be given under halotracker')
     #####
     # Load initial tree
     fieldstoload = ['SubfindID','NextProgenitorID','SubhaloID','SubhaloIDRaw','SnapNum','FirstProgenitorID','SubhaloGrNr']
@@ -262,7 +260,81 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
             #inverse snapid, to start from the oldest snapshot
             snapid_inv = maxsnapid - snapid + 1
             # Lets start checking the Subhalo
+            snapnum = tree['SnapNum'][snapid_inv]
+            haloid = tree['SubhaloGrNr'][snapid_inv]
+            subfindid = tree['SubfindID'][snapid_inv]
+            if particleidsSHnotfound.size != 0:
+                subhalodata = il.snapshot.loadSubhalo(basepath, snapnum, subfindid,
+                                                      'star', fields=['ParticleIDs','Masses'])
+                indexSHfound = np.isin(particleidsSHnotfound,subhalodata['ParticleIDs'])
+                indexSHnotfound = np.invert(indexSHfound)
+                particleidsSHfound = particleidsSHnotfound[indexSHfound]
+                particleidsSHnotfound = particleidsSHnotfound[indexSHnotfound]
+                origin_name = str(snapnum - 1)
+                SH_origins[origin_name] = particleidsSHfound
+                # cleanupdata
+                del subhalodata
+                pass
+            # Now check the FoF
+            if particleidsFoFnotfound.size != 0:
+                fofdata = il.snapshot.loadHalo(basepath, snapnum, haloid,
+                                               'star', fields=['ParticleIDs','Masses'])
+                indexFoFfound = np.isin(particleidsFoFnotfound,fofdata['ParticleIDs'])
+                indexFoFnotfound = np.invert(indexFoFfound)
+                particleidsFoFfound = particleidsFoFnotfound[indexFoFfound]
+                particleidsFoFnotfound = particleidsFoFnotfound[indexFoFnotfound]
+                origin_name = str(snapnum - 1)
+                FoF_origins[origin_name] = particleidsFoFfound
+                # cleanupdata
+                del fofdata
+                pass
             pass
+        # With that we have SH_origins and FoF origins, we need to make them into batches now for revision.
+        batches = batch_maker(SH_origins,FoF_origins)
+        # Now the batches are in format {"minsnap|maxsnap":[particleids]}
+        # So checking should be direct.
+        for batch_name in batches.keys():
+            particleidbatch = batches[batch_name]
+            minsnap = batch_name[:2]
+            maxsnap = batch_name[3:]
+            for snapnum in range(minsnap,maxsnap):
+                snapid = 99 - snapnum
+                # Now what is the subfindid of the main branch at this snap?
+                mainsubfindid = tree['SubfindID'][snapid]
+                # And the HaloID
+                FoFID = tree['SubhaloGrNr'][snapid]
+                # For this snap lets see the list of subfindids for the given halo.
+                halodata = il.groupcat.loadSingle(basepath, snapnum, haloID=FoFID)
+                centralsubfindid = halodata['GroupFirstSub']
+                subhalosinFoF = halodata['GroupNsubs']
+                furthestsubfindid = centralsubfindid + subhalosinFoF
+                subfindids_arr = np.arange(centralsubfindid, furthestsubfindid)
+                # delete the halodata, no longer being used
+                del halodata
+                # We will not considerate the main branch in the search obviously.
+                for subfindid in subfinds_arr:
+                    if subfindid == mainsubfindid:
+                        continue
+                    # Lets load the particle data
+                    subfind_data = il.snapshot.loadSubhalo(basepath, snapnum, subfindid, 'stars', fields=['ParticleIDs','Masses'])
+                    # Now lets check if there are common particleids
+                    indexbatchfound = np.isin(particleidbatch,subfind_data['ParticleIDs'])
+                    indexbatchnotfound = np.invert(indexbatchfound)
+                    particleidsbatchfound = particleidbatch[indexbatchfound]
+                    if particleidsbatchfound.size != 0:
+                        particlebatch = particleidbatch[indexnotfound]
+                        # lets take a moment to delete the ids from the global not found list
+                        indexfound = np.isin(particleidsnotfound,particleidsbatchfound)
+                        particleidsnotfound = particleidsnotfound[indexfound]
+                        origin_name = 'SubfindID:' + str(subfindid) + '|Snap:' + str(snapnum)
+                        if origin_name in origins.keys():
+                            logging.warning('This origin was already registered, please check!, adding as extra', origin_name)
+                            origin_name += 'EXTRA'
+                            pass
+                        origins[origin_name] = particleidsfound
+                        pass
+                    # lets clear the subfind_data
+                    del subfind_data
         pass
     # If even then there are still particleids to find then assign them undefined
     if len(particleidsnotfound) != 0:
@@ -270,3 +342,44 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
         pass
     # Now return all of the estimated origins.
     return origins
+
+
+def batch_maker(SH_origins,FoF_origins):
+    """
+    Makes a dictionary with the snapshot ranges to search the particleids for.
+    Parameters:
+    SH_origins (dict) format {'snap':[particleids]}
+    FoF_origins (dict) format {'snap':[particleids]}
+    Returns:
+    batches (dict) format {'FoFsnap|SHsnap':[particleids]}
+    """
+    batches = {}
+    # For making the batches we want to go trough all combinations of FoF origins and SH origins, making pairs.
+    logging.info('Making pairs of snaps')
+    for FoFsnap in FoF_origins.keys():
+        particleidsinFoF = FoF_origins[FoFsnap]
+        # The FoFsnap always should be less than the SHsnap
+        for SHsnap in SH_origins.keys():
+            particleidsinSH = SH_origins[SHsnap]
+            if int(SHsnap) > int(FoFsnap):
+                logging.warning('Beware SHsnap higher than FoFsnap! SHsnap:',SHsnap,' |FoFsnap:',FoFsnap)
+                continue
+            elif particleidsinSH.size == 0:
+                logging.info('This SH_origins is already empty, not checking...')
+                continue
+            # Obtain particleids in common
+            indexincommon = np.isin(particleidsinSH,particleidsinFoF)
+            indexnotincommon = np.invert(indexincommon)
+            particleidsincommon = particleidsinSH[indexincommon]
+            # what particleids are in common, if empty, do not save.
+            if particleidsincommon.size != 0:
+                batches_name = str(FoFsnap) + '|' + str(SHsnap)
+                batches[batches_name] = particleidsincommon
+                # And lets not consider the already checked particleids anymore.
+                SH_origins[SHsnap] = particleidsinSH[indexnotincommon]
+                pass
+            continue
+        # All possible SH_origins checked, next FoF!
+        continue
+    # All pairs made!
+    return batches
