@@ -303,7 +303,8 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
             particleidbatch = batches[batch_name]
             minsnap = int(batch_name[:2])
             maxsnap = int(batch_name[3:])
-            for snapnum in range(minsnap,maxsnap):
+            for snapnum_front in range(minsnap,maxsnap):
+                snapnum = maxsnap - snapnum_front - minsnap
                 snapid = 99 - snapnum
                 # Now what is the subfindid of the main branch at this snap?
                 mainsubfindid = merger_tree['SubfindID'][snapid]
