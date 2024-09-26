@@ -330,7 +330,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                         indexbatchnotfound = np.invert(indexbatchfound)
                         particleidsbatchfound = particleidbatch[indexbatchfound]
                         if particleidsbatchfound.size != 0:
-                            particlebatch = particleidbatch[indexnotfound]
+                            particlebatch = particleidbatch[indexbatchnotfound]
                             # lets take a moment to delete the ids from the global not found list
                             indexfound = np.isin(particleidsnotfound,particleidsbatchfound)
                             particleidsnotfound = particleidsnotfound[indexfound]
