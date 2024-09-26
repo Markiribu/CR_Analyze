@@ -318,7 +318,7 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                 # delete the halodata, no longer being used
                 del halodata
                 # We will not considerate the main branch in the search obviously.
-                for subfindid in subfinds_arr:
+                for subfindid in subfindids_arr:
                     if subfindid == mainsubfindid:
                         continue
                     # Lets load the particle data
