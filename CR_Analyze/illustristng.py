@@ -304,17 +304,14 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
             minsnap = int(batch_name[:2])
             maxsnap = int(batch_name[3:])
             for snapnum_front in range(minsnap,maxsnap):
-                snapnum = maxsnap - snapnum_front - minsnap
+                snapnum = maxsnap - snapnum_front + minsnap
                 snapid = 99 - snapnum
                 # Now what is the subfindid of the main branch at this snap?
                 mainsubfindid = merger_tree['SubfindID'][snapid]
                 # And the HaloID
                 FoFID = merger_tree['SubhaloGrNr'][snapid]
                 # For this snap lets see the list of subfindids for the given halo.
-                try:
-                    halodata = il.groupcat.loadSingle(basepath, snapnum, haloID=FoFID)
-                except OSError:
-                    print(f'ALGO HA OCURRIDO REVISAR FOF:{FoFID}, SNAP:{snapnum}')
+                halodata = il.groupcat.loadSingle(basepath, snapnum, haloID=FoFID)
                 centralsubfindid = halodata['GroupFirstSub']
                 subhalosinFoF = halodata['GroupNsubs']
                 furthestsubfindid = centralsubfindid + subhalosinFoF
