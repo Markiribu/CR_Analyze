@@ -260,9 +260,9 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
             #inverse snapid, to start from the oldest snapshot
             snapid_inv = maxsnapid - snapid + 1
             # Lets start checking the Subhalo
-            snapnum = tree['SnapNum'][snapid_inv]
-            haloid = tree['SubhaloGrNr'][snapid_inv]
-            subfindid = tree['SubfindID'][snapid_inv]
+            snapnum = merger_tree['SnapNum'][snapid_inv]
+            haloid = merger_tree['SubhaloGrNr'][snapid_inv]
+            subfindid = merger_tree['SubfindID'][snapid_inv]
             if particleidsSHnotfound.size != 0:
                 subhalodata = il.snapshot.loadSubhalo(basepath, snapnum, subfindid,
                                                       'star', fields=['ParticleIDs','Masses'])
@@ -300,9 +300,9 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
             for snapnum in range(minsnap,maxsnap):
                 snapid = 99 - snapnum
                 # Now what is the subfindid of the main branch at this snap?
-                mainsubfindid = tree['SubfindID'][snapid]
+                mainsubfindid = merger_tree['SubfindID'][snapid]
                 # And the HaloID
-                FoFID = tree['SubhaloGrNr'][snapid]
+                FoFID = merger_tree['SubhaloGrNr'][snapid]
                 # For this snap lets see the list of subfindids for the given halo.
                 halodata = il.groupcat.loadSingle(basepath, snapnum, haloID=FoFID)
                 centralsubfindid = halodata['GroupFirstSub']
