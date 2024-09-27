@@ -339,10 +339,12 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
                             particleidsnotfound = particleidsnotfound[indexfound]
                             origin_name = 'SubfindID:' + str(subfindid) + '|Snap:' + str(snapnum)
                             if origin_name in origins.keys():
-                                logging.warning(f'This origin was already registered, please check!, adding as extra {origin_name}')
-                                origin_name += 'EXTRA'
+                                logging.info(f'This origin was already registered, appending...')
+                                origins[origin_name] = np.append(origins[origin_name],particleidsbatchfound)
                                 pass
-                            origins[origin_name] = particleidsbatchfound
+                            else:
+                                origins[origin_name] = particleidsbatchfound
+                                pass
                             pass
                         pass
                     # lets clear the subfind_data
@@ -365,9 +367,6 @@ def batch_maker(SH_origins,FoF_origins):
     Returns:
     batches (dict) format {'FoFsnap|SHsnap':[particleids]}
     """
-    #temporary
-    print('SH',SH_origins)
-    print('FoF',FoF_origins)
     batches = {}
     # For making the batches we want to go trough all combinations of FoF origins and SH origins, making pairs.
     logging.info('Making pairs of snaps')
@@ -397,6 +396,4 @@ def batch_maker(SH_origins,FoF_origins):
         # All possible SH_origins checked, next FoF!
         continue
     # All pairs made!
-    #debug temporary
-    print('batches',batches)
     return batches
