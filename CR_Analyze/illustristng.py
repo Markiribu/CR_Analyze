@@ -190,11 +190,10 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
     subfindid (int) the SubfindID
     snap (int) SnapNum
     maxsnapdepth (int) Maximum snap that the tracker searches through
-    deep_tracking (bool) Whether to run the 2nd search step by loading all particles in the FoF Halo.
-    halo_tracker (np.array(int)) Array with the HaloIDs starting with snap 99
+    deep_tracking (bool) Whether to run the 2nd search step, using the latest subhalo before getting to the main branch.
     Returns:
     origins (dict) a dictionmary with fields (subfindid, snap) with the corresponding particleids
-    in case no origin was determined it will be given under 'undefined'
+    in case no origin was determined it will be given under 'undefined'.
     """
     origins = {}
     # required dependencies
@@ -390,10 +389,42 @@ def batch_maker(SH_origins,FoF_origins):
                 batches_name = str(FoFsnap) + '|' + str(SHsnap)
                 batches[batches_name] = particleidsincommon
                 # And lets not consider the already checked particleids anymore.
-                SH_origins[SHsnap] = particleidsinSH[indexnotincommon]
+                SH_origins[SHsnap] = particleidsinSH[indexnotincommon
+                                                     fixed_origins = {}]
                 pass
             continue
         # All possible SH_origins checked, next FoF!
         continue
     # All pairs made!
     return batches
+
+
+def sort_keys(origins):
+    """
+    Given a dictionary of origins it gives the sorted key list according to the snap number.
+    Parameters:
+    origins (dict) dictionary such that {'SubfindID:N|Snap:N':[particleids],...}
+    """
+    keys = list(origins.keys())
+    keys_sorted = keys.copy()
+    sorting = True
+    while sorting:
+        sorting = False
+        for i in range(len(keys) - 2):
+            name = keys_sorted[i]
+            nextname = keys_sorted[i+1]
+            # obtain the snap
+            snap = int([element.split(sep=':') for element in name.split(sep='|')][1][1])
+            nextsnap = int([element.split(sep=':') for element in nextname.split(sep='|')][1][1])
+            if nextsnap > snap:
+                keys_sorted[i] = nextname
+                keys_sorted[i+1] = name
+                sorting = True
+    return keys_sorted
+
+
+def tree_merger(origins):
+    """
+    """
+    fixed_origins = {}
+    return(fixed_origins)
