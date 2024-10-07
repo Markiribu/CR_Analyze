@@ -389,8 +389,7 @@ def batch_maker(SH_origins,FoF_origins):
                 batches_name = str(FoFsnap) + '|' + str(SHsnap)
                 batches[batches_name] = particleidsincommon
                 # And lets not consider the already checked particleids anymore.
-                SH_origins[SHsnap] = particleidsinSH[indexnotincommon
-                                                     fixed_origins = {}]
+                SH_origins[SHsnap] = particleidsinSH[indexnotincommon]
                 pass
             continue
         # All possible SH_origins checked, next FoF!
