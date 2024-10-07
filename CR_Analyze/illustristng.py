@@ -423,8 +423,43 @@ def sort_keys(origins):
     return keys_sorted
 
 
-def tree_merger(origins):
+def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/output'):
     """
     """
     fixed_origins = {}
+    # before using the origins for checking the satellites, we need to sort the keys in descending snap order.
+    sorted_keys = sort_keys(origins)
+    i = 0
+    while len(sorted_keys) > 1:
+        main_origin = sorted_keys[0]
+        subfindid = int([s.split(sep=':') for s in main_origin.split(sep='|')][0][1])
+        snap = int([s.split(sep=':') for s in main_origin.split(sep='|')][1][1])
+        tree = il.sublink.loadTree(basepath, snap, subfindid, fields=['SubfindID'])
+        satellite_origins = {}
+        satellite_origins[main_origin] = origins[main_origin]
+        sorted_keys.remove(main_origin)
+        sorted_Keys_copy = sorted_keys.copy()
+        for key_tocheck in sorted_keys_copy:
+            subfindid_tocheck = int([s.split(sep=':') for s in main_origin.split(sep='|')][0][1])
+            snap_tocheck = int([s.split(sep=':') for s in main_origin.split(sep='|')][1][1])
+            subfindid_intree = tree[snap - snap_tocheck]
+            if (subfindid_intree == subfindid_tocheck):
+                satellite_origins[key_tocheck] = origins[key_tocheck]
+                sorted_keys.remove(key_tocheck)
+                pass
+            pass
+        # this satellite is fully considered now.
+        satellitename = 'satellite_' + str(i)
+        satellite_origins['All'] = np.array([],dtype=int64)
+        # Now change to next satellite to consider or finish
+        for key in satellite_origins:
+            if key == 'All':
+                continue
+            satellite_origins['All'] = np.append(satellite_origins['All'],satellite_origins[key])
+            pass
+        satellitename = 'satellite_' + str(i)
+        fixed_origins[satellitename] = satellite_origins
+        i += 1
+        pass
+    # Now we have taken every main branch into account
     return(fixed_origins)
