@@ -425,6 +425,8 @@ def sort_keys(origins):
 def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/output'):
     """
     """
+    optional_dependencies(hdf5=False)
+    import illustris_python as il
     fixed_origins = {}
     # before using the origins for checking the satellites, we need to sort the keys in descending snap order.
     sorted_keys = sort_keys(origins)
