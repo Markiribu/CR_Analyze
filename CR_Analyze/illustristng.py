@@ -439,7 +439,7 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
         satellite_origins = {}
         satellite_origins[main_origin] = origins[main_origin]
         sorted_keys.remove(main_origin)
-        sorted_Keys_copy = sorted_keys.copy()
+        sorted_keys_copy = sorted_keys.copy()
         for key_tocheck in sorted_keys_copy:
             subfindid_tocheck = int([s.split(sep=':') for s in main_origin.split(sep='|')][0][1])
             snap_tocheck = int([s.split(sep=':') for s in main_origin.split(sep='|')][1][1])
