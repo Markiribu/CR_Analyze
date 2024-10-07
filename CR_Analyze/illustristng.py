@@ -409,7 +409,7 @@ def sort_keys(origins):
     sorting = True
     while sorting:
         sorting = False
-        for i in range(len(keys) - 1):
+        for i in range(len(keys)):
             name = keys_sorted[i]
             nextname = keys_sorted[i+1]
             # obtain the snap
