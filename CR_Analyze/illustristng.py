@@ -431,7 +431,7 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
     # before using the origins for checking the satellites, we need to sort the keys in descending snap order.
     sorted_keys = sort_keys(origins)
     i = 0
-    while len(sorted_keys) > 1:
+    while len(sorted_keys) > 0:
         main_origin = sorted_keys[0]
         subfindid = int([s.split(sep=':') for s in main_origin.split(sep='|')][0][1])
         snap = int([s.split(sep=':') for s in main_origin.split(sep='|')][1][1])
