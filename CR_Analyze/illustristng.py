@@ -451,7 +451,7 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
             pass
         # this satellite is fully considered now.
         satellitename = 'satellite_' + str(i)
-        satellite_origins['All'] = np.array([],dtype='int64')
+        satellite_origins['All'] = np.array([],dtype='uint64')
         # Now change to next satellite to consider or finish
         for key in satellite_origins:
             if key == 'All':
