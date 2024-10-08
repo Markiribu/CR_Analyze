@@ -302,8 +302,8 @@ def exsitu_tracker(subfindid, snapnum, particleIDs, maxsnapdepth=10,
         # So checking should be direct.
         for batch_name in batches.keys():
             particleidbatch = batches[batch_name]
-            minsnap = int(batch_name[:2])
-            maxsnap = int(batch_name[3:])
+            minsnap = int([s for s in batch_name.split('|')][0])
+            maxsnap = int([s for s in batch_name.split('|')][1])
             for snapnum_front in range(minsnap,maxsnap):
                 snapnum = maxsnap - snapnum_front + minsnap
                 snapid = 99 - snapnum
