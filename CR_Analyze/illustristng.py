@@ -435,7 +435,7 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
         main_origin = sorted_keys[0]
         subfindid = int([s.split(sep=':') for s in main_origin.split(sep='|')][0][1])
         snap = int([s.split(sep=':') for s in main_origin.split(sep='|')][1][1])
-        tree = il.sublink.loadTree(basepath, snap, subfindid, fields=['SubfindID'])
+        tree = il.sublink.loadTree(basepath, snap, subfindid, fields=['SubfindID','SnapNum'])
         satellite_origins = {}
         satellite_origins[main_origin] = origins[main_origin]
         sorted_keys.remove(main_origin)
@@ -443,8 +443,9 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
         for key_tocheck in sorted_keys_copy:
             subfindid_tocheck = int([s.split(sep=':') for s in main_origin.split(sep='|')][0][1])
             snap_tocheck = int([s.split(sep=':') for s in main_origin.split(sep='|')][1][1])
-            subfindid_intree = tree[snap - snap_tocheck]
-            if (subfindid_intree == subfindid_tocheck):
+            subfindid_intree = tree['SubfindID'][snap - snap_tocheck + 1]
+            snap_intree = tree['SnapNum'][snap - snap_tocheck + 1]
+            if (subfindid_intree == subfindid_tocheck) and (snap_intree == snap_tocheck):
                 satellite_origins[key_tocheck] = origins[key_tocheck]
                 sorted_keys.remove(key_tocheck)
                 pass
@@ -460,6 +461,7 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
             pass
         satellitename = 'satellite_' + str(i)
         fixed_origins[satellitename] = satellite_origins
+        del satellite_origins
         i += 1
         pass
     # Now we have taken every main branch into account
