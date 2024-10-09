@@ -413,8 +413,14 @@ def sort_keys(origins):
             name = keys_sorted[i]
             nextname = keys_sorted[i+1]
             # obtain the snap
-            snap = int([element.split(sep=':') for element in name.split(sep='|')][1][1])
-            nextsnap = int([element.split(sep=':') for element in nextname.split(sep='|')][1][1])
+            if name != 'Undefined':
+                snap = int([element.split(sep=':') for element in name.split(sep='|')][1][1])
+            else:
+                snap = -2000
+            if nextname != 'Undefined':
+                nextsnap = int([element.split(sep=':') for element in nextname.split(sep='|')][1][1])
+            else:
+                nextsnap = -2000
             if nextsnap > snap:
                 keys_sorted[i] = nextname
                 keys_sorted[i+1] = name
@@ -431,6 +437,8 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
     # before using the origins for checking the satellites, we need to sort the keys in descending snap order.
     sorted_keys = sort_keys(origins)
     i = 0
+    # dont consider 'undefined case'
+    sorted_keys.remove('Undefined')
     while len(sorted_keys) > 0:
         main_origin = sorted_keys[0]
         subfindid = int([s.split(sep=':') for s in main_origin.split(sep='|')][0][1])
@@ -465,4 +473,5 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
         i += 1
         pass
     # Now we have taken every main branch into account
+    fixed_origins['Undefined'] = origins['Undefined']
     return(fixed_origins)
