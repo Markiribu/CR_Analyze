@@ -438,11 +438,8 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
     sorted_keys = sort_keys(origins)
     i = 0
     # dont consider 'undefined case'
-    try:
+    if 'Undefined' in origins.keys():
         sorted_keys.remove('Undefined')
-    except ValueError:
-        # there is no undefined case
-        pass
     while len(sorted_keys) > 0:
         main_origin = sorted_keys[0]
         subfindid = int([s.split(sep=':') for s in main_origin.split(sep='|')][0][1])
@@ -480,5 +477,6 @@ def tree_merger(origins, basepath = '/virgotng/universe/IllustrisTNG/TNG50-1/out
         i += 1
         pass
     # Now we have taken every main branch into account
-    fixed_origins['Undefined'] = origins['Undefined']
+    if 'Undefined' in origins.keys():
+        fixed_origins['Undefined'] = origins['Undefined']
     return(fixed_origins)
