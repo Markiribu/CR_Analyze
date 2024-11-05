@@ -38,7 +38,7 @@ def frame_of_reference_change(r, v, central_pos, central_vel, L_box):
     # goes beyond L_box/2
     for i in range(3):
         periodicity_fix_positive = np.where(r[:, i] > L_box/2, L_box, 0)
-        periodicity_fix_negative = np.where(r[:,i] < L_box/2, -L_box, 0)
+        periodicity_fix_negative = np.where(r[:,i] < -1*L_box/2, -1*L_box, 0)
         r[:, i] -= periodicity_fix_positive
         r[:, i] -= periodicity_fix_negative
         continue
